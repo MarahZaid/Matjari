@@ -1,7 +1,7 @@
 import { sessionFor, homeFor } from '../auth/model';
 import { usePlatform } from "../platform/context";
 import { useMarketplace } from "../platform/useMarketplace";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -79,6 +79,13 @@ export function Header() {
   const { data } = usePlatform();
   const [open, setOpen] = useState(false),
     [search, setSearch] = useState("");
+  const menuButton = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (e.key === "Escape") { setOpen(false); menuButton.current?.focus(); } };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [open]);
   const navigate = useNavigate(),
     { items } = useCart();
   return (
@@ -87,6 +94,7 @@ export function Header() {
         <Brand />
         <nav
           className={open ? "main-nav open" : "main-nav"}
+          id="marketplace-navigation"
           aria-label="Main navigation"
           onClick={() => setOpen(false)}
         >
@@ -120,6 +128,8 @@ export function Header() {
           <span>{items.reduce((n, i) => n + i.quantity, 0)}</span>
         </Link>}
         <button
+          ref={menuButton}
+          aria-controls="marketplace-navigation"
           className="icon-button mobile-menu"
           aria-label={open ? "Close navigation" : "Open navigation"}
           aria-expanded={open}
@@ -130,6 +140,9 @@ export function Header() {
       </div>
     </header>
   );
+}
+export function TeamCredits() {
+  return <div className="workspace-credits"><p>Designed &amp; Developed by</p><p>Alaa Dere · Hiba Burhan · Marah Zaid · Shorouq Derieh</p><p>Matjari | Advanced Database Systems Project — Fall 2026</p></div>;
 }
 export function Footer() {
   return (

@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Store, Package, Boxes, ShoppingBag, Menu, X, ArrowUpRight, ChevronRight, ShieldCheck } from 'lucide-react';
-import { Brand } from '../components/Marketplace';
+import { Brand, TeamCredits } from '../components/Marketplace';
 import { useSeller } from './context';
 import './seller.css';
 export function StoreSwitcher() {
@@ -26,7 +26,8 @@ export default function SellerLayout() {
   const sidebarRef = useRef(null);
   useEffect(() => {
     if (!open) return;
-    const previous = document.activeElement;
+    const previous = document.activeElement, oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     sidebarRef.current.querySelector('button').focus();
     function keyboard(e) {
       if (e.key === 'Escape') {
@@ -47,13 +48,14 @@ export default function SellerLayout() {
     }
     document.addEventListener('keydown', keyboard);
     return () => {
+      document.body.style.overflow = oldOverflow;
       document.removeEventListener('keydown', keyboard);
       previous?.focus();
     };
   }, [open]);
   const title = navigation.find(([path]) => location.pathname.includes(path))?.[1] || 'Dashboard';
-  return <div className="seller-shell"><aside role={open ? 'dialog' : undefined} aria-modal={open || undefined} aria-label="Merchant navigation" ref={sidebarRef} className={`seller-sidebar ${open ? 'is-open' : ''}`}><div className="seller-brand"><Brand /><button className="seller-mobile" aria-label="Close navigation" onClick={() => setOpen(false)}><X size={20} /></button></div><span className="seller-eyebrow">MERCHANT WORKSPACE</span><nav aria-label="Seller navigation">{navigation.map(([path, label, Icon]) => <NavLink key={path} to={`/seller/${path}`} onClick={() => setOpen(false)}><Icon size={19} />{label}<ChevronRight size={14} /></NavLink>)}</nav><div className="seller-sidebar-bottom"><div className="seller-note"><ShieldCheck size={22} /><strong>Your business, connected.</strong><p>One workspace for every store you’re building.</p></div><Link to="/">Visit marketplace <ArrowUpRight size={16} /></Link><small>Tenant scoped to your demo account. Sign out to choose another account.</small></div></aside>{open && <button className="seller-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
- <div className="seller-workspace" inert={open}><header className="seller-topbar"><div className="seller-crumb"><button className="seller-mobile" aria-label="Open navigation" aria-expanded={open} onClick={() => setOpen(!open)}><Menu size={20} /></button><span>Workspace</span><ChevronRight size={14} /><strong>{title}</strong></div><div className="seller-top-right"><StoreSwitcher /><span className="seller-avatar" title="Demo merchant">MZ</span></div></header><main id="main" className="seller-main">{notice && <div role="status" className="seller-feedback">{notice}<button aria-label="Dismiss message" onClick={() => setNotice('')}><X size={16} /></button></div>}<Suspense fallback={<div className="seller-loading" role="status"><span className="sr-only">Loading merchant workspace…</span>{[1,2,3].map(i => <div className="skeleton" key={i}/>)}</div>}><Outlet key={`${tenant.id}-${storeId}`} /></Suspense></main><div className="seller-foot">Matjari Merchant <span>Demo workspace · October 2026</span></div></div></div>;
+  return <div className="seller-shell"><aside id="seller-navigation" role={open ? 'dialog' : undefined} aria-modal={open || undefined} aria-label="Merchant navigation" ref={sidebarRef} className={`seller-sidebar ${open ? 'is-open' : ''}`}><div className="seller-brand"><Brand /><button className="seller-mobile" aria-label="Close navigation" onClick={() => setOpen(false)}><X size={20} /></button></div><span className="seller-eyebrow">MERCHANT WORKSPACE</span><nav aria-label="Seller navigation">{navigation.map(([path, label, Icon]) => <NavLink key={path} to={`/seller/${path}`} onClick={() => setOpen(false)}><Icon size={19} />{label}<ChevronRight size={14} /></NavLink>)}</nav><div className="seller-sidebar-bottom"><div className="seller-note"><ShieldCheck size={22} /><strong>Your business, connected.</strong><p>One workspace for every store you’re building.</p></div><Link to="/">Visit marketplace <ArrowUpRight size={16} /></Link><small>Tenant scoped to your demo account. Sign out to choose another account.</small></div></aside>{open && <button className="seller-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
+ <div className="seller-workspace" inert={open}><header className="seller-topbar"><div className="seller-crumb"><button className="seller-mobile" aria-label="Open navigation" aria-controls="seller-navigation" aria-expanded={open} onClick={() => setOpen(!open)}><Menu size={20} /></button><span>Workspace</span><ChevronRight size={14} /><strong>{title}</strong></div><div className="seller-top-right"><StoreSwitcher /><span className="seller-avatar" title="Demo merchant">MZ</span></div></header><main id="main" className="seller-main">{notice && <div role="status" className="seller-feedback">{notice}<button aria-label="Dismiss message" onClick={() => setNotice('')}><X size={16} /></button></div>}<Suspense fallback={<div className="seller-loading" role="status"><span className="sr-only">Loading merchant workspace…</span>{[1,2,3].map(i => <div className="skeleton" key={i}/>)}</div>}><Outlet key={`${tenant.id}-${storeId}`} /></Suspense></main><div className="seller-foot">Matjari Merchant <span>Demo workspace · October 2026</span></div><TeamCredits /></div></div>;
 }
 export function PageHeading({
   eyebrow = 'YOUR WORKSPACE',
