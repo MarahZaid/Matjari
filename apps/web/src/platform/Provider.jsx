@@ -1,9 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlatformContext } from './context';
 import { loadDemo, saveDemo, resetDemo, browserStorage } from './persistence';
 export default function PlatformProvider({ children }) {
   const [initial] = useState(() => loadDemo(browserStorage));
-  const [data, setData] = useState(initial.data);
+  const [data, reactSetData] = useState(initial.data);
+  const current = useRef(initial.data);
+  const setData = useCallback(update => {
+    const next = typeof update === 'function' ? update(current.current) : update;
+    current.current = next;
+    reactSetData(next);
+  }, []);
+  function transact(action) {
+    const result = action(current.current);
+    if (!result.error) setData(result.data);
+    return result;
+  }
   const [writable, setWritable] = useState(initial.writable);
   const [message, setMessage] = useState(initial.message);
   useEffect(() => {
@@ -19,5 +30,5 @@ export default function PlatformProvider({ children }) {
     setWritable(true);
     setMessage(result.saved ? 'Demo data reset.' : 'Demo reset in memory. Browser storage is unavailable.');
   }
-  return <PlatformContext.Provider value={{ data, setData, reset, message }}>{children}</PlatformContext.Provider>;
+  return <PlatformContext.Provider value={{ data, setData, transact, reset, message }}>{children}</PlatformContext.Provider>;
 }

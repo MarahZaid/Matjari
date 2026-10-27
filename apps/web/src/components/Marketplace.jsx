@@ -1,3 +1,5 @@
+import { sessionFor, homeFor } from '../auth/model';
+import { usePlatform } from "../platform/context";
 import { useMarketplace } from "../platform/useMarketplace";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -74,6 +76,7 @@ export function SearchBar({
   );
 }
 export function Header() {
+  const { data } = usePlatform();
   const [open, setOpen] = useState(false),
     [search, setSearch] = useState("");
   const navigate = useNavigate(),
@@ -104,21 +107,18 @@ export function Header() {
             }}
           />
         </div>
-        <span
-          className="sign-in"
-          title="Customer accounts are coming in a future phase"
-        >
+        <Link className="sign-in" to={sessionFor(data) ? homeFor(sessionFor(data).role) : "/login"}>
           <UserRound size={18} />
-          Sign in <small>Coming soon</small>
-        </span>
-        <Link
+          {sessionFor(data) ? "My workspace" : "Demo sign in"}
+        </Link>
+        {sessionFor(data)?.role === "customer" && <Link
           className="cart-link"
           to="/cart"
           aria-label={`Shopping cart, ${items.reduce((n, i) => n + i.quantity, 0)} items`}
         >
           <ShoppingBag size={22} />
           <span>{items.reduce((n, i) => n + i.quantity, 0)}</span>
-        </Link>
+        </Link>}
         <button
           className="icon-button mobile-menu"
           aria-label={open ? "Close navigation" : "Open navigation"}
@@ -145,8 +145,6 @@ export function Footer() {
         </div>
         <div>
           <h3>Explore Matjari</h3>
-          <Link to="/admin/dashboard">Platform admin · Development demo</Link>
-          <Link to="/seller/dashboard">Merchant dashboard · Demo</Link>
           <Link to="/products">All products</Link>
           <Link to="/stores">Our stores</Link>
           <Link to="/products?category=Home+%26+Living">Home & Living</Link>
