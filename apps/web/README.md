@@ -54,3 +54,52 @@ The starter has no test framework. Responsive breakpoints target 320, 375, 430, 
 - Direct Node assertions checked exact per-currency totals, persisted-cart validation, duplicate rejection, stock limits, filtering and same-tenant store isolation. No test framework was added to the starter.
 
 All implementation changes are limited to `apps/web`. Checkout, authentication, live inventory and API integration remain future work. Unsplash imagery is illustrative mock content.
+
+## Phase 2: merchant dashboard
+
+Run `npm install` (if dependencies are not installed), then `npm run dev` from
+`apps/web`. Open `/seller/dashboard` on the Vite development URL, or use the
+**Merchant dashboard · Demo** link in the marketplace footer.
+
+Pages: dashboard, stores, products, inventory, orders, and order details. Seller
+routes use a separate sidebar/header layout; customer routes and catalog state
+remain independent.
+
+The shared SellerProvider provides mock authentication, validated store selection,
+and session-only merchant mutations. StoreSwitcher shows the current tenant and
+only that tenant's stores. All Stores aggregates authorized records. Selection
+persists in localStorage and is revalidated against the current tenant. Changing
+tenants or stores resets page-local filters/forms. The sidebar's demo tenant
+selector makes isolation across four tenants and six stores easy to inspect.
+
+`src/seller/data.js` is the mock data access/selector boundary. It reuses the
+marketplace IDs and records, adds four seller-only products (30 total), and seeds
+35 orders. Products and orders require both matching tenant ownership and an
+authorized store relationship. Foreign order URLs return an unavailable state,
+including when an order belongs to a different selected store. Sales charts and
+totals group original currencies, excluding pending, cancelled, and refunded
+orders; no exchange-rate conversion is performed.
+
+Mock operations include creating stores with unique slugs; adding/editing products
+with store, price, stock, and SKU validation; activating/deactivating products;
+setting inventory quantities; and updating order status. Cancellation, refunds,
+and product deactivation require confirmation. Order transitions are explicitly
+listed in `transitions`; terminal states cannot be reopened. Stock's configurable
+low threshold is exported as `threshold` (default 5). Mutations reset on reload;
+only the selected store is persisted. Order transitions do not simulate payments,
+stock reservation, shipping services, or automatic inventory reconciliation.
+
+Responsive CSS supports a 320px minimum viewport, a mobile navigation drawer with
+Escape dismissal and keyboard focus handling, adapting card grids, stacked forms,
+responsive charts, and horizontal scrolling contained inside tables. Desktop,
+tablet, and mobile browser screenshots were not verified in this environment.
+
+Checks: `npm run build`, `npm run lint`, and `npm test`. The Node test suite covers
+tenant/store isolation, stale selections, dataset relationships, product/order
+filters, inventory thresholds, currency totals, product validation, and order
+transitions. It tests selectors and rules rather than browser interactions.
+
+This is explicitly a frontend demonstration, not production authentication or
+authorization. A future API must derive tenant identity from an authenticated
+session and enforce authorization on every read and mutation. Backend and database
+files are unchanged. No chart or other runtime dependency was added.
