@@ -1,7 +1,9 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { useSearchParams } from "react-router-dom";
-import { stores, categories } from "../data/marketplace";
+import { categories } from "../data/marketplace";
 import { SearchBar, StoreCard, EmptyState } from "../components/Marketplace";
 export default function Stores() {
+  const { stores } = useMarketplace();
   const [params, setParams] = useSearchParams(),
     search = params.get("search") || "",
     category = params.get("category") || "",
@@ -41,7 +43,7 @@ export default function Stores() {
             onChange={(e) => set("category", e.target.value)}
           >
             <option value="">All categories</option>
-            {categories.map((c) => (
+            {[...new Set([...categories, ...stores.map(s => s.category)])].map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>

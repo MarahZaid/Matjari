@@ -1,7 +1,7 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ShoppingBag, Store } from "lucide-react";
-import { products, stores } from "../data/marketplace";
 import { money, getRelatedProducts } from "../services/catalog";
 import { useCart } from "../context/CartContext";
 import {
@@ -13,6 +13,7 @@ import {
   ProductGrid,
 } from "../components/Marketplace";
 export default function ProductDetails() {
+  const { products } = useMarketplace();
   const { id } = useParams(),
     product = products.find((p) => p.id === id);
   return product ? (
@@ -32,6 +33,7 @@ export default function ProductDetails() {
   );
 }
 function Details({ product: p }) {
+  const { stores, products } = useMarketplace();
   const [count, setCount] = useState(1),
     { add, quantity } = useCart(),
     store = stores.find((s) => s.id === p.storeId),
@@ -115,7 +117,7 @@ function Details({ product: p }) {
           to={`/stores/${store.slug}`}
           action="Visit store"
         />
-        <ProductGrid products={getRelatedProducts(p)} />
+        <ProductGrid products={getRelatedProducts(p, products)} />
       </section>
     </div>
   );

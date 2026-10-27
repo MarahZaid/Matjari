@@ -89,6 +89,8 @@ export function seed() {
 export function validateProduct(p, all, tenantId, products) {
   if (!p.name.trim() || !p.sku.trim() || !p.category.trim()) return 'Title, SKU, and category are required.';
   if (!validStore(all, tenantId, p.storeId) || p.storeId === 'all') return 'Choose an authorized store.';
+  if (!['USD', 'EUR', 'ILS'].includes(p.currency)) return 'Choose a supported currency.';
+  if (p.id && products.some(x => x.id === p.id && x.storeId !== p.storeId)) return 'Existing products cannot move between stores.';
   if (p.price === '' || !Number.isFinite(Number(p.price)) || Number(p.price) < 0) return 'Enter a valid non-negative price.';
   if (p.stock === '' || !Number.isSafeInteger(Number(p.stock)) || Number(p.stock) < 0) return 'Stock must be a non-negative whole number.';
   if (products.some(x => x.id !== p.id && x.storeId === p.storeId && x.sku.toLowerCase() === p.sku.trim().toLowerCase())) return 'This SKU is already used in this store.';

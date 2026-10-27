@@ -2,6 +2,9 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useParams, Link, useLocation, Outlet, Navigate } from "react-router-dom";
 import CartProvider from "./context/CartProvider";
 import { Header, Footer, EmptyState, LoadingSkeleton } from "./components/Marketplace";
+import { useMarketplace } from "./platform/useMarketplace";
+import DemoControls from "./platform/DemoControls";
+import CustomerOrders from "./pages/Orders";
 import { getStoreBySlug } from "./services/catalog";
 import "./App.css";
 import PlatformProvider from "./platform/Provider";
@@ -31,10 +34,11 @@ const Catalog = lazy(() => import("./pages/Catalog"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 const Cart = lazy(() => import("./pages/Cart"));
 function Storefront() {
+  const { stores } = useMarketplace();
   const {
       slug
     } = useParams(),
-    store = getStoreBySlug(slug);
+    store = getStoreBySlug(slug, stores);
   return store ? <Catalog key={slug} store={store} /> : <NotFound store />;
 }
 function NotFound({
@@ -64,7 +68,7 @@ function CustomerLayout() {
 export default function App() {
   return <BrowserRouter>
       <PlatformProvider><CartProvider>
-        <ScrollToTop />
+        <ScrollToTop /><DemoControls />
         <a className="skip-link" href="#main">
           Skip to content
         </a>
@@ -88,6 +92,7 @@ export default function App() {
               <Route path="/stores/:slug" element={<Storefront />} />
               <Route path="/products" element={<Catalog />} />
               <Route path="/products/:id" element={<ProductDetails />} />
+              <Route path="/orders" element={<CustomerOrders />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="*" element={<NotFound />} />
               </Route>

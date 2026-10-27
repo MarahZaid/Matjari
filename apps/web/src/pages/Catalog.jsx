@@ -1,6 +1,7 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { useSearchParams, Link } from "react-router-dom";
 import { SlidersHorizontal } from "lucide-react";
-import { categories, stores } from "../data/marketplace";
+import { categories } from "../data/marketplace";
 import { filterProducts } from "../services/catalog";
 import {
   Image,
@@ -10,6 +11,7 @@ import {
   Pagination,
 } from "../components/Marketplace";
 export default function Catalog({ store }) {
+  const { stores, products } = useMarketplace();
   const [params, setParams] = useSearchParams();
   const get = (k) => params.get(k) || "";
   const requestedPage = Number(get("page"));
@@ -28,7 +30,7 @@ export default function Catalog({ store }) {
     sort: get("sort") || "featured",
     page,
   };
-  const { items, total, pages } = filterProducts(query);
+  const { items, total, pages, page: currentPage } = filterProducts(query, products);
   function set(key, value) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
@@ -36,11 +38,12 @@ export default function Catalog({ store }) {
     if (key !== "page") next.delete("page");
     setParams(next, { replace: true });
   }
+  const categoryOptions = [...new Set([...categories, ...products.map(p => p.category)])];
   const storeCategories = store
-    ? categories.filter(
-        (c) => filterProducts({ store: store.id, category: c }).total,
+    ? categoryOptions.filter(
+        (c) => filterProducts({ store: store.id, category: c }, products).total,
       )
-    : categories;
+    : categoryOptions;
   return (
     <div className="container page">
       {store ? (
@@ -210,7 +213,7 @@ export default function Catalog({ store }) {
               {store ? ` at ${store.name}` : ""}
             </span>
             <span>
-              Page {page} of {Math.max(1, pages)}
+              Page {currentPage} of {Math.max(1, pages)}
             </span>
           </div>
           {query.sort.startsWith("price") && !query.currency && (
@@ -237,7 +240,7 @@ export default function Catalog({ store }) {
             </EmptyState>
           )}
           <Pagination
-            page={page}
+            page={currentPage}
             pages={Math.max(1, pages)}
             onChange={(p) => set("page", String(p))}
           />

@@ -8,7 +8,7 @@ const navigation = [['dashboard', 'Overview', LayoutDashboard], ['tenants', 'Ten
 class AdminError extends Component {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <section className="seller-card admin-error" role="alert"><h2>We couldn’t open this demo view</h2><p>Try loading the workspace again. Session changes will reset.</p><button onClick={() => window.location.reload()}>Reload workspace</button></section> : this.props.children; }
+  render() { return this.state.failed ? <section className="seller-card admin-error" role="alert"><h2>We couldn’t open this demo view</h2><p>Try loading the workspace again. Saved demo changes will be restored when browser storage is available.</p><button onClick={() => window.location.reload()}>Reload workspace</button></section> : this.props.children; }
 }
 export default function AdminLayout() {
   const [open, setOpen] = useState(false), ref = useRef(null), { pathname } = useLocation();
