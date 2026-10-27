@@ -20,6 +20,26 @@ npm run preview --prefix apps/web -- --host 127.0.0.1
 
 Storage is per origin; different ports have separate demo data.
 
+## Vercel deployment
+
+Import the repository into Vercel with these project settings:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `apps/web` |
+| Framework Preset | Vite |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+No environment variables, API server, database, or credentials are required for this demo. Commands above run relative to the Vercel Root Directory. Deploy the generated `dist` output rather than running the Vite development or preview server.
+
+[`vercel.json`](vercel.json) follows [Vercel's Vite SPA guidance](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas): requests without a matching static file fall back to `/index.html`, allowing React Router to handle direct visits and refreshes at `/cart`, `/login`, `/seller/dashboard`, `/admin/dashboard`, and other routes. Protected routes still require the correct demo role; guests are redirected to login and other roles receive the existing access-denied page.
+
+Vite retains its default `/` asset base. Built JavaScript/CSS use root-relative `/assets/` URLs, and `public/favicon.svg` and `public/icons.svg` are copied to the output root. Existing files are served before the SPA fallback. Product photos and Inter fonts use external HTTPS providers, with the existing image and system-font fallbacks. There is no localhost API dependency or backend proxy.
+
+After deployment, directly open and refresh the four routes above, sign in with each relevant demo role, and check that JavaScript, CSS, favicon and icon requests return their proper asset content. Confirm cart/session persistence and theme persistence on reload. Storage belongs to the deployed origin: local development, preview URLs, and the production domain have separate demo state. Mock data, demo authentication, role guards and Light/Dark Theme are unchanged; the hosted app remains a browser demo with inspectable local data.
+
 ## Routes
 
 | Area | Routes |
