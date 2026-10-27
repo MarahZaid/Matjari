@@ -1,157 +1,85 @@
-# Matjari customer marketplace
+# Matjari frontend demo
 
-React / Vite customer frontend for a multi-tenant, multi-store marketplace. All data is local mock data; no API or database connections are made.
+Matjari is a multi-tenant, multi-store eCommerce demonstration for Advanced Database Systems — Fall 2026. The React/Vite frontend includes a marketplace, customer checkout and account, tenant-scoped seller tools, and platform administration. All operations use fictional browser data. No backend, MySQL, credentials, payment provider or shipping service is connected.
 
-## Run locally
+## Start and preview
+
+From the repository root:
 
 ```sh
-cd apps/web
-npm install
-npm run dev
+npm ci --prefix apps/web
+npm run dev --prefix apps/web -- --host 127.0.0.1 --port 5180
 ```
 
-Open the URL Vite prints. `npm run build` creates `dist/`; `npm run preview` serves the production build. Production hosting must rewrite non-asset URLs to `index.html` for client-side routing.
+Open the URL Vite prints (normally http://127.0.0.1:5180; another port is selected if occupied). For a production preview:
+
+```sh
+npm run build --prefix apps/web
+npm run preview --prefix apps/web -- --host 127.0.0.1
+```
+
+Storage is per origin; different ports have separate demo data.
 
 ## Routes
 
-- `/`: marketplace home, categories, featured stores and products.
-- `/stores`: searchable store directory, categories and load more.
-- `/stores/:slug`: isolated storefront, search, filtering and sorting.
-- `/products`: catalog with URL-backed filters, sorting and pagination.
-- `/products/:id`: product details, quantity selection and same-store recommendations.
-- `/cart`: persistent bag, quantity updates, removal and subtotals by currency.
+| Area | Routes |
+| --- | --- |
+| Public marketplace | `/`, `/stores`, `/stores/:slug`, `/products`, `/products/:id` |
+| Demo account selection | `/login`, `/register` |
+| Customer | `/account`, `/account/orders`, `/account/orders/:id`, `/cart`, `/checkout`, `/checkout/confirmation/:reference` |
+| Seller | `/seller/dashboard`, `/seller/stores`, `/seller/products`, `/seller/inventory`, `/seller/orders`, `/seller/orders/:id` |
+| Admin | `/admin/dashboard`, `/admin/tenants`, `/admin/stores`, `/admin/analytics`, `/admin/monitoring` |
 
-Unknown routes and missing product/store IDs have recovery links. Customer accounts and checkout are explicitly unavailable in this phase.
+`/orders` redirects to customer order history; `/seller` and `/admin` redirect to their dashboards. Unknown paths show a not-found state.
 
-## Organization
+## Demo login and route protection
 
-- `src/data/marketplace.js`: four tenants, six stores and 26 products; stable tenant/store/product IDs, USD/EUR/ILS, inactive and sold-out records.
-- `src/services/catalog.js`: product selectors, filtering/pagination, price formatting, cart validation and currency subtotals. Replace this boundary when introducing API queries.
-- `src/context/`: local cart state; defensive localStorage parsing, purchase eligibility and stock enforcement.
-- `src/components/Marketplace.jsx`: shared layout, cards, search, states, pagination and quantity controls.
-- `src/pages/`: six customer page types, including the storefront rendered through the catalog component.
-- `src/index.css`, `src/App.css`: theme, accessible controls and responsive layouts.
+Choose a fictional customer, a seller associated with a specific tenant, or Platform Admin Demo at `/login`. No password is requested. Registration creates a local customer profile using fictional contact details. Sign Out ends the session and clears the cart and selected customer/tenant/store context; orders remain attached to their customer.
 
-Price sorting groups currencies rather than comparing USD, EUR and ILS as equivalent amounts. Select a currency for directly comparable prices. No currency conversion or checkout policy is assumed. Persisted cart data is revalidated against current mock inventory. Browser storage failures do not prevent an in-memory cart from working.
+Guests can browse, but cart/account/checkout and workspaces require the appropriate role. Guest Add to Cart returns to the product after customer login; press Add to Cart again to confirm the action. No cart mutation occurs before login. Sellers and admins cannot use customer checkout. Each role receives a 403 for another role's protected pages. Intended destinations are restored only when safe and permitted for the chosen role. Valid sessions survive reload; invalid sessions become guests.
 
-Product/store imagery uses Unsplash image URLs; Inter loads from Google Fonts. Images have local UI fallbacks and the font stack falls back to Arial/system sans-serif if external services are unavailable. No fabricated ratings, shipping promises or payment guarantees are shown.
+Seller store selection and records remain scoped to the signed-in tenant. Switching tenants requires signing out and selecting another seller account. Customer history, order URLs and confirmation references expose only the active customer's orders. See [DEMO_RBAC.md](DEMO_RBAC.md) for the access matrix and implementation details. These frontend policies demonstrate isolation; bundled data/localStorage are inspectable and are not production authorization.
 
-## Checks
+## Shared mock data and checkout
+
+One PlatformProvider graph connects tenants, stores, products, inventory, customers, orders and sample monitoring events. Seller edits and admin status changes propagate to the marketplace. Suspending a store hides it and its products publicly; suspending a tenant hides every associated storefront. Historical customer orders remain visible. Monitoring uses deterministic mock events, with no live health information.
+
+Checkout validates contact/shipping fields, availability and stock before atomically creating store/currency orders and deducting inventory. Historical item prices are snapshots. Orders split by store and currency; USD, EUR and ILS are never combined or converted. Demo cash on delivery collects no payment; new checkout orders use zero shipping/discount assumptions. Seller status changes appear in the customer's order timeline. Status stages are current-state indicators, not timestamped shipment events.
+
+The versioned `matjari-demo-v1` localStorage record persists the shared graph, session and cart. Corrupt/unsupported data is preserved with a recovery notice; storage failures leave the demo usable in memory. The app is intended for one active browser tab.
+
+**Reset Demo Data** is available in the shared demo toolbar and asks for confirmation. Cancel preserves data. Confirm restores the seed, removes created profiles/orders/edits, ends the session and clears the cart. Theme preference is retained.
+
+## Light and dark themes
+
+First-time visitors start in light mode. The shared **Dark theme / Light theme** button appears on public, authentication, customer, seller and admin pages. Its accessible name is “Dark theme” and `aria-pressed` reports whether dark mode is enabled. The preference uses the independent `matjari-theme` key and is applied in the document head before React renders. Dark mode uses navy/charcoal surfaces and blue accents. Forms, tables, dialogs, charts, status badges, toasts and loading states share theme variables. If storage is blocked, changing the theme still works for the visit and shows a notice.
+
+## Verification
 
 ```sh
-npm run build
-npm run lint
+npm run lint --prefix apps/web
+npm test --prefix apps/web
+npm run build --prefix apps/web
 ```
 
-The starter has no test framework. Responsive breakpoints target 320, 375, 430, 768, 1024, 1440 and 1920px. Reduced motion, keyboard focus, named controls, a skip link and live cart notifications are included.
+Node tests cover catalog rules, seller scope, admin selectors, checkout transactions, customer ownership, role guards, persistence/reset and theme preferences.
 
-## Phase 1 verification
+Real-browser suites require a running frontend, Playwright and Chrome supplied by your environment. No browser testing dependency is added to the app. For example:
 
-- Production build and ESLint completed successfully.
-- Temporary Playwright tooling outside the repository tested all six page types at 320, 375, 430, 768, 1024, 1440 and 1920px. No horizontal overflow was detected. External images and fonts were blocked for this matrix to exercise fallback layouts.
-- Browser flows covered sibling-store isolation, search, category/availability filters, pagination, currency-specific sorting, empty results, add/update/remove cart actions, persistence, currency subtotals, stock caps, invalid routes, malformed saved data and mobile navigation. The production run reported no runtime errors.
-- Desktop (1440px) and mobile (375px) home screenshots were also inspected with external imagery loaded. These checks are separate from the fallback matrix; not every page was manually inspected at every width.
-- Direct Node assertions checked exact per-currency totals, persisted-cart validation, duplicate rejection, stock limits, filtering and same-tenant store isolation. No test framework was added to the starter.
+```sh
+WEB_URL=http://127.0.0.1:5180 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:browser --prefix apps/web
+WEB_URL=http://127.0.0.1:5180 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:polish --prefix apps/web
+```
 
-All implementation changes are limited to `apps/web`. Checkout, authentication, live inventory and API integration remain future work. Unsplash imagery is illustrative mock content.
+`CHROME_PATH` overrides `/usr/bin/google-chrome`. `SCREENSHOT_DIR` optionally saves screenshots to an existing directory. `TRACE_QA=1` logs navigation in the polish suite. The RBAC suite checks login, logout/back, safe redirects, customer/seller isolation, invalid sessions and registration. The polish suite traverses guest shopping through checkout, seller updates, customer verification and admin suspension/restoration, then checks 24 routes at seven widths under both themes, dialogs, tablet orientation and theme/reset/storage failure behavior. External fonts and product photography are blocked in that suite for deterministic fallback testing. See [PHASE6.md](PHASE6.md) for executed results and limitations. Earlier phase reports describe historical implementation states; this README and DEMO_RBAC describe the current behavior.
 
-## Phase 2: merchant dashboard
+## Limitations and future integration
 
-Run `npm install` (if dependencies are not installed), then `npm run dev` from
-`apps/web`. Open `/seller/dashboard` on the Vite development URL, or use the
-**Merchant dashboard · Demo** link in the marketplace footer.
+This is a browser demo, not a production service. It has no cross-tab/device concurrency control, real authentication, payments, shipping, live monitoring, exchange rates or server-side authorization. Imagery/fonts depend on external providers; image fallbacks and system fonts remain available offline. Browser QA uses headless Chrome; physical devices, Firefox/Safari and full assistive-technology certification are outside the executed checks.
 
-Pages: dashboard, stores, products, inventory, orders, and order details. Seller
-routes use a separate sidebar/header layout; customer routes and catalog state
-remain independent.
+A future backend must derive identity/tenant ownership from verified server sessions and authorize every read/mutation, replace local selectors with paginated API queries, provide transactional inventory/order writes and idempotency, and integrate payment/shipping providers. No backend endpoints or database migrations are part of this frontend.
 
-The shared SellerProvider provides mock authentication, validated store selection,
-and session-only merchant mutations. StoreSwitcher shows the current tenant and
-only that tenant's stores. All Stores aggregates authorized records. Selection
-persists in localStorage and is revalidated against the current tenant. Changing
-tenants or stores resets page-local filters/forms. The sidebar's demo tenant
-selector makes isolation across four tenants and six stores easy to inspect.
+Designed & Developed by
+Alaa Dere · Hiba Burhan · Marah Zaid · Shorouq Derieh
 
-`src/seller/data.js` is the mock data access/selector boundary. It reuses the
-marketplace IDs and records, adds four seller-only products (30 total), and seeds
-35 orders. Products and orders require both matching tenant ownership and an
-authorized store relationship. Foreign order URLs return an unavailable state,
-including when an order belongs to a different selected store. Sales charts and
-totals group original currencies, excluding pending, cancelled, and refunded
-orders; no exchange-rate conversion is performed.
-
-Mock operations include creating stores with unique slugs; adding/editing products
-with store, price, stock, and SKU validation; activating/deactivating products;
-setting inventory quantities; and updating order status. Cancellation, refunds,
-and product deactivation require confirmation. Order transitions are explicitly
-listed in `transitions`; terminal states cannot be reopened. Stock's configurable
-low threshold is exported as `threshold` (default 5). Mutations reset on reload;
-only the selected store is persisted. Order transitions do not simulate payments,
-stock reservation, shipping services, or automatic inventory reconciliation.
-
-Responsive CSS supports a 320px minimum viewport, a mobile navigation drawer with
-Escape dismissal and keyboard focus handling, adapting card grids, stacked forms,
-responsive charts, and horizontal scrolling contained inside tables. Desktop,
-tablet, and mobile browser screenshots were not verified in this environment.
-
-Checks: `npm run build`, `npm run lint`, and `npm test`. The Node test suite covers
-tenant/store isolation, stale selections, dataset relationships, product/order
-filters, inventory thresholds, currency totals, product validation, and order
-transitions. It tests selectors and rules rather than browser interactions.
-
-This is explicitly a frontend demonstration, not production authentication or
-authorization. A future API must derive tenant identity from an authenticated
-session and enforce authorization on every read and mutation. Backend and database
-files are unchanged. No chart or other runtime dependency was added.
-
-## Phase 3: platform admin console
-
-Open `/admin/dashboard`, or choose **Platform admin · Development demo** in the
-marketplace footer. Admin routes use an independent AdminLayout with Overview,
-Tenants, Stores, Analytics, and Monitoring. The mock admin identity is separate
-from the merchant demo selector; neither provides real authentication or access
-control.
-
-The console reuses the Phase 2 seed (four tenants, six stores, 30 products, and
-35 orders). `src/admin/data.js` extends those records with tenant plan/country,
-creation dates, and 84 deterministic monitoring events. No duplicate product or
-order dataset is maintained. `src/platform/Provider.jsx` holds shared, session-only
-admin/merchant state. Store and tenant changes, new merchant stores, and merchant
-product/order edits are reflected across these workspaces during client navigation.
-Reloading resets mutations. Customer catalog/cart continue to use the original
-marketplace fixture and do not reflect admin/merchant mutations.
-
-Tenants and stores support search, combined filters, sorting, pagination, detail
-dialogs, and confirmed mock status changes. Tenant status is independent of store
-status: suspending a tenant does not cascade to stores or enforce access. Plans
-are metadata only, with no billing. Stable IDs preserve tenant ownership on each
-store mutation. Analytics date filters affect orders and currency-specific sales;
-catalog/tenant charts explicitly show the current snapshot. Sales exclude pending,
-cancelled, and refunded orders and never combine different currencies.
-
-Monitoring supports event search, tenant/type filters, timestamp ordering,
-pagination, and charts that follow the filters. All events are labeled as mock;
-Elasticsearch/Kibana are informational placeholders, with no simulated server
-health or live backend connection. Lazy routes have loading fallbacks, the admin
-layout has a recovery error boundary, and tables/charts provide empty states.
-
-`src/admin/data.js` centralizes query, summary, pagination, status mutation, and
-aggregation functions. These synchronous fixture selectors are for this small
-demo only. A production data adapter must replace them with paginated/filterable
-API queries and server-side aggregations rather than downloading an entire
-platform dataset. Backend authentication and authorization must enforce every
-operation before production use.
-
-Run `npm test`, `npm run lint`, and `npm run build` from `apps/web`. Focused admin
-tests cover relationships, summaries, search/filters/sorting, pagination, isolated
-store/tenant updates, date filtering, currency grouping, and event filtering.
-
-Phase 3 verification: build, ESLint, and both Node test files passed. Headless
-Chrome checked all five admin routes at 320, 375, 430, 768, 1024, 1440, and 1920px
-with no horizontal page overflow. Desktop/mobile overview screenshots were
-inspected. Browser interaction checks covered status confirmation/cancellation,
-details, seller propagation, empty search results, event filtering/pagination,
-analytics date totals, and mobile drawer Escape/focus behavior. Existing customer
-and seller routes also passed smoke checks with no JavaScript exceptions. The
-responsive matrix covers layout overflow; it is not a full assistive-technology
-audit or a complete end-to-end test of every marketplace interaction.
+Matjari | Advanced Database Systems Project — Fall 2026

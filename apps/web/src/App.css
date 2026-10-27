@@ -22,9 +22,9 @@
   box-shadow: 0 4px 12px #175cd322;
 }
 .button.secondary {
-  background: white;
+  background: var(--surface);
   color: var(--navy);
-  border-color: #d5deeb;
+  border-color: var(--border);
 }
 .button.secondary:hover {
   background: var(--soft);
@@ -71,7 +71,7 @@
   color: var(--primary);
 }
 header {
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: relative;
   z-index: 10;
@@ -96,7 +96,7 @@ header {
   height: 100%;
   border-bottom: 2px solid transparent;
   padding-top: 2px;
-  color: #647085;
+  color: var(--muted);
 }
 .main-nav a.active {
   color: var(--primary);
@@ -115,7 +115,7 @@ header {
   border: 1px solid var(--border);
   border-radius: 7px;
   min-height: 42px;
-  color: #8b97a9;
+  color: var(--muted);
 }
 .search:focus-within {
   border-color: var(--primary);
@@ -163,7 +163,7 @@ header {
   right: -9px;
   top: 0;
   background: var(--primary);
-  border: 3px solid white;
+  border: 3px solid var(--surface);
   border-radius: 20px;
   min-width: 22px;
   height: 22px;
@@ -178,7 +178,7 @@ header {
 .hero {
   margin-top: 28px;
   border-radius: 15px;
-  background: #edf3fc;
+  background: var(--soft);
   min-height: 465px;
   display: grid;
   grid-template-columns: 1.08fr 1fr;
@@ -194,9 +194,9 @@ header {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  background: #fff9;
+  background: var(--surface);
   padding: 5px 12px;
-  border: 1px solid #dbe6f7;
+  border: 1px solid var(--border);
   border-radius: 20px;
   font-size: 10px;
   font-weight: 600;
@@ -220,7 +220,7 @@ header {
 .hero-copy > p {
   font-size: 13px;
   line-height: 1.9;
-  color: #687b96;
+  color: var(--muted);
 }
 .hero-actions {
   display: flex;
@@ -233,11 +233,11 @@ header {
   gap: 12px;
   margin-top: 30px;
   font-size: 10px;
-  color: #718097;
+  color: var(--muted);
 }
 .hero-note strong {
   font-weight: 550;
-  color: #4c6383;
+  color: var(--muted);
 }
 .mini-logos {
   display: flex;
@@ -248,7 +248,7 @@ header {
   place-items: center;
   width: 28px;
   height: 28px;
-  border: 2px solid #edf3fc;
+  border: 2px solid var(--soft);
   border-radius: 50%;
   background: #dfd5c7;
   color: #59685f;
@@ -271,7 +271,7 @@ header {
   position: absolute;
   width: 410px;
   height: 410px;
-  border: 1px solid #d7e3f7;
+  border: 1px solid var(--border);
   border-radius: 50%;
   top: 26px;
   left: 18px;
@@ -284,8 +284,8 @@ header {
 }
 .hero-product {
   position: absolute;
-  background: #fff;
-  border: 6px solid #fff;
+  background: var(--surface);
+  border: 6px solid var(--surface);
   border-radius: 13px;
   box-shadow: 0 12px 30px #274b7a15;
   overflow: hidden;
@@ -336,7 +336,7 @@ header {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: white;
+  background: var(--surface);
   padding: 13px 16px;
   border-radius: 9px;
   box-shadow: 0 6px 20px #274b7a12;
@@ -382,7 +382,7 @@ header {
   border: 0;
 }
 .discovery-strip svg {
-  color: #5b78a4;
+  color: var(--muted);
   width: 22px;
 }
 .discovery-strip span {
@@ -429,12 +429,12 @@ header {
   display: flex;
   align-items: center;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface);
 }
 .category-card > span {
   width: 48px;
   height: 48px;
-  background: #ecf2fc;
+  background: var(--soft);
   border-radius: 13px;
   display: grid;
   place-items: center;
@@ -478,12 +478,12 @@ header {
 }
 .category-card:hover {
   transform: translateY(-3px);
-  border-color: #bdcff0;
+  border-color: var(--border);
   box-shadow: 0 5px 15px #102a5608;
 }
 .stores-section {
   background: var(--page);
-  border-block: 1px solid #f0f3f8;
+  border-block: 1px solid var(--page);
 }
 .store-grid {
   display: grid;
@@ -493,7 +493,7 @@ header {
 .store-card {
   border: 1px solid var(--border);
   border-radius: 11px;
-  background: white;
+  background: var(--surface);
   overflow: hidden;
   transition: box-shadow 0.2s;
 }
@@ -521,7 +521,7 @@ header {
 .store-logo {
   width: 44px;
   height: 44px;
-  border: 3px solid white;
+  border: 3px solid var(--surface);
   border-radius: 11px;
   display: grid;
   place-items: center;
@@ -565,14 +565,14 @@ header {
   border-radius: 11px;
   overflow: hidden;
   min-width: 0;
-  background: white;
+  background: var(--surface);
 }
 .product-image {
   display: block;
   position: relative;
   height: auto;
   aspect-ratio: 1.2;
-  background: #f2f3f2;
+  background: var(--page);
   overflow: hidden;
 }
 .product-image img {
@@ -589,7 +589,7 @@ header {
 }
 .product-store {
   display: block;
-  color: #8390a0;
+  color: var(--muted);
   font-size: 10px;
   margin-bottom: 6px;
 }
@@ -609,7 +609,7 @@ header {
   align-items: center;
   gap: 5px;
   font-size: 9px;
-  color: #388e6e;
+  color: var(--success-text);
   margin-top: 7px;
 }
 .stock i {
@@ -619,7 +619,7 @@ header {
   background: var(--green);
 }
 .stock.unavailable {
-  color: #9b7171;
+  color: var(--error-text);
 }
 .stock.unavailable i {
   background: var(--red);
@@ -664,8 +664,8 @@ header {
   left: 12px;
   padding: 4px 9px;
   border-radius: 5px;
-  background: #fff;
-  color: #756b6b;
+  background: var(--surface);
+  color: var(--muted);
   font-size: 10px;
 }
 .bottom-banner {
@@ -674,8 +674,8 @@ header {
   justify-content: space-between;
   gap: 25px;
   padding: 34px 38px;
-  background: #edf3fc;
-  border: 1px solid #e4ecf8;
+  background: var(--soft);
+  border: 1px solid var(--border);
   border-radius: 12px;
   margin-bottom: 55px;
 }
@@ -733,7 +733,7 @@ footer {
   justify-content: space-between;
   gap: 16px;
   padding-block: 18px;
-  color: #8792a3;
+  color: var(--muted);
   font-size: 9px;
 }
 .footer-bottom .brand-dot {
@@ -785,7 +785,7 @@ footer {
   border: 1px solid var(--border);
   border-radius: 10px;
   align-self: start;
-  background: #fff;
+  background: var(--surface);
 }
 .filter-panel summary {
   padding: 18px;
@@ -955,7 +955,7 @@ legend {
 }
 .directory-toolbar .search {
   width: 420px;
-  background: white;
+  background: var(--surface);
 }
 .directory-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -979,7 +979,7 @@ legend {
   padding: 70px 20px;
   gap: 15px;
   min-height: 330px;
-  border: 1px dashed #dce4ef;
+  border: 1px dashed var(--border);
   border-radius: 12px;
   background: var(--page);
 }
@@ -1121,9 +1121,9 @@ legend {
 .quantity {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #dfe6ef;
+  border: 1px solid var(--border);
   border-radius: 7px;
-  background: white;
+  background: var(--surface);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -1247,7 +1247,7 @@ legend {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #9c6671;
+  color: var(--error-text);
 }
 .cart-summary {
   background: var(--page);
@@ -1323,8 +1323,8 @@ legend {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: #edf1f5;
-  color: #6d7d91;
+  background: var(--page);
+  color: var(--muted);
   font-size: 12px;
   text-align: center;
   padding: 15px;
@@ -1332,7 +1332,7 @@ legend {
 .skeleton {
   height: 300px;
   border-radius: 10px;
-  background: #edf1f7;
+  background: var(--border);
   animation: pulse 1.5s infinite alternate;
 }
 .loading {
@@ -1599,7 +1599,7 @@ legend {
     top: 67px;
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--surface);
     box-shadow: 0 8px 12px #102a5610;
     align-items: stretch;
     padding: 10px 16px;

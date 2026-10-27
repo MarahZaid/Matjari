@@ -60,9 +60,15 @@ function ScrollToTop() {
   } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => { const heading = document.querySelector("h1"); if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); } }, 100);
-    document.title = pathname.startsWith("/admin") ? "Platform Admin · Demo | Matjari" : pathname.startsWith("/seller") ? "Merchant Workspace | Matjari" : pathname === "/" ? "Matjari — Many Stores. One Marketplace." : `${pathname.startsWith("/cart") ? "Your Bag" : pathname.startsWith("/stores") ? "Independent Stores" : "Discover Products"} | Matjari`;
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => { const heading = document.querySelector("h1"); if (heading && document.activeElement === document.body && !document.querySelector("dialog[open], [aria-modal=true]")) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); } }, 100);
+    const updateTitle = () => {
+      const title = document.querySelector('h1')?.textContent?.trim();
+      document.title = `${title || 'Marketplace'} | Matjari Demo`;
+    };
+    updateTitle();
+    const observer = new MutationObserver(updateTitle);
+    observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+    return () => { clearTimeout(timer); observer.disconnect(); };
   }, [pathname]);
   return null;
 }

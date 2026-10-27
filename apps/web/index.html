@@ -9,6 +9,13 @@
       name="description"
       content="Discover thoughtful products from independent stores at Matjari. Many stores. One marketplace."
     />
+    <script>
+      // Apply the saved preference before styles and React paint; light is the default.
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('matjari-theme') === 'dark' ? 'dark' : 'light';
+      } catch { document.documentElement.dataset.theme = 'light'; }
+      if (document.documentElement.dataset.theme === 'dark') document.querySelector('meta[name="theme-color"]').content = '#111c2e';
+    </script>
     <title>Matjari — Many Stores. One Marketplace.</title>
   </head>
   <body>
