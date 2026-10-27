@@ -92,7 +92,7 @@ export function Modal({
     dialog.showModal();
     return () => dialog.close();
   }, []);
-  return <dialog className="seller-dialog" ref={ref} onCancel={onClose} onClick={e => {
+  return <dialog className="seller-dialog" aria-label={title} ref={ref} onCancel={onClose} onClick={e => {
     if (e.target === ref.current) onClose();
   }}><div className="seller-dialog-heading"><h2>{title}</h2><button aria-label="Close form" onClick={onClose}><X /></button></div>{children}</dialog>;
 }

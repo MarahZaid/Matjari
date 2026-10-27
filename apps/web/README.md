@@ -103,3 +103,55 @@ This is explicitly a frontend demonstration, not production authentication or
 authorization. A future API must derive tenant identity from an authenticated
 session and enforce authorization on every read and mutation. Backend and database
 files are unchanged. No chart or other runtime dependency was added.
+
+## Phase 3: platform admin console
+
+Open `/admin/dashboard`, or choose **Platform admin · Development demo** in the
+marketplace footer. Admin routes use an independent AdminLayout with Overview,
+Tenants, Stores, Analytics, and Monitoring. The mock admin identity is separate
+from the merchant demo selector; neither provides real authentication or access
+control.
+
+The console reuses the Phase 2 seed (four tenants, six stores, 30 products, and
+35 orders). `src/admin/data.js` extends those records with tenant plan/country,
+creation dates, and 84 deterministic monitoring events. No duplicate product or
+order dataset is maintained. `src/platform/Provider.jsx` holds shared, session-only
+admin/merchant state. Store and tenant changes, new merchant stores, and merchant
+product/order edits are reflected across these workspaces during client navigation.
+Reloading resets mutations. Customer catalog/cart continue to use the original
+marketplace fixture and do not reflect admin/merchant mutations.
+
+Tenants and stores support search, combined filters, sorting, pagination, detail
+dialogs, and confirmed mock status changes. Tenant status is independent of store
+status: suspending a tenant does not cascade to stores or enforce access. Plans
+are metadata only, with no billing. Stable IDs preserve tenant ownership on each
+store mutation. Analytics date filters affect orders and currency-specific sales;
+catalog/tenant charts explicitly show the current snapshot. Sales exclude pending,
+cancelled, and refunded orders and never combine different currencies.
+
+Monitoring supports event search, tenant/type filters, timestamp ordering,
+pagination, and charts that follow the filters. All events are labeled as mock;
+Elasticsearch/Kibana are informational placeholders, with no simulated server
+health or live backend connection. Lazy routes have loading fallbacks, the admin
+layout has a recovery error boundary, and tables/charts provide empty states.
+
+`src/admin/data.js` centralizes query, summary, pagination, status mutation, and
+aggregation functions. These synchronous fixture selectors are for this small
+demo only. A production data adapter must replace them with paginated/filterable
+API queries and server-side aggregations rather than downloading an entire
+platform dataset. Backend authentication and authorization must enforce every
+operation before production use.
+
+Run `npm test`, `npm run lint`, and `npm run build` from `apps/web`. Focused admin
+tests cover relationships, summaries, search/filters/sorting, pagination, isolated
+store/tenant updates, date filtering, currency grouping, and event filtering.
+
+Phase 3 verification: build, ESLint, and both Node test files passed. Headless
+Chrome checked all five admin routes at 320, 375, 430, 768, 1024, 1440, and 1920px
+with no horizontal page overflow. Desktop/mobile overview screenshots were
+inspected. Browser interaction checks covered status confirmation/cancellation,
+details, seller propagation, empty search results, event filtering/pagination,
+analytics date totals, and mobile drawer Escape/focus behavior. Existing customer
+and seller routes also passed smoke checks with no JavaScript exceptions. The
+responsive matrix covers layout overflow; it is not a full assistive-technology
+audit or a complete end-to-end test of every marketplace interaction.
