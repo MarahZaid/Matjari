@@ -1,3 +1,4 @@
+import { accounts, enterSession } from '../src/auth/model.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDemo, validDemo, loadDemo, saveDemo, resetDemo, STORAGE_KEY, VERSION } from '../src/platform/persistence.js';
@@ -40,7 +41,7 @@ test('seller edits and order updates reach marketplace, customer, admin, and rel
   d.products[0] = { ...d.products[0], price:17, stock:2 };
   d.products.push({ ...d.products[0], id:'new-product', sku:'NEW-SKU', name:'New arrival' });
   d.orders[0].status = 'paid';
-  d.context = { ...d.context, role:'seller', storeId:'s1' };
+  Object.assign(d, enterSession(d, accounts(d)[0]));
   d.cart = [{ id:'p1', quantity:2 }];
   assert.equal(filterProducts({search:'New arrival'}, publicProducts(d)).total, 1);
   assert.equal(publicProducts(d)[0].price, 17);
@@ -59,7 +60,7 @@ test('corrupt, unsupported and relationally invalid saves are preserved until ex
     assert.ok(validDemo(result.data));
     assert.equal(storage.getItem(STORAGE_KEY), raw);
   }
-  for (const mutate of [d => d.products[0].tenantId = 't2', d => d.orders[0].customerId = 'missing', d => d.context.storeId = 's3', d => d.products[0].stock = -1, d => d.orders[0].items[0].quantity = 0, d => d.products[0].currency = 'BAD']) {
+  for (const mutate of [d => d.products[0].tenantId = 't2', d => d.orders[0].customerId = 'missing', d => d.products[0].stock = -1, d => d.orders[0].items[0].quantity = 0, d => d.products[0].currency = 'BAD']) {
     const d = createDemo(); mutate(d); assert.equal(validDemo(d), false);
   }
   const result = resetDemo(storage);
@@ -83,13 +84,13 @@ test('catalog clamps stale pagination after availability changes', () => {
   assert.equal(result.page, result.pages);
   assert.ok(result.items.length);
 });
-test('legacy cart and valid store selection import only when no versioned save exists', () => {
+test('legacy unowned cart and tenant selection are discarded', () => {
   const storage = memory();
   storage.setItem('matjari-cart', JSON.stringify([{id:'p1', quantity:2}]));
   storage.setItem('matjari-seller-store', 's2');
   const loaded = loadDemo(storage);
-  assert.deepEqual(loaded.data.cart, [{id:'p1',quantity:2}]);
-  assert.equal(loaded.data.context.storeId, 's2');
+  assert.deepEqual(loaded.data.cart, []);
+  assert.equal(loaded.data.context.storeId, 'all');
   saveDemo(storage, createDemo());
   assert.deepEqual(loadDemo(storage).data.cart, []);
 });

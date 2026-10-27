@@ -1,20 +1,18 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePlatform } from './context';
-import { roles } from './persistence';
+import { enterSession, homeFor, sessionFor } from '../auth/model';
 export default function DemoControls() {
-  const { data, setData, reset, message } = usePlatform();
-  const { pathname } = useLocation(), navigate = useNavigate();
-  const role = pathname.startsWith('/admin') ? 'admin' : pathname.startsWith('/seller') ? 'seller' : 'customer';
-  function select(value) {
-    setData(d => ({ ...d, context: { ...d.context, role: value } }));
-    navigate(value === 'customer' ? '/' : `/${value}/dashboard`);
-  }
-  return <div className="demo-controls">
-    <label>Demo role <select aria-label="Demo role" value={role} onChange={e => select(e.target.value)}>{roles.map(r => <option key={r}>{r}</option>)}</select></label>
-    <Link to="/account/orders">My demo orders</Link><Link to={data.context.signedIn ? "/account" : "/login"}>{data.context.signedIn ? "My account" : "Demo sign in"}</Link>
-    <Link to={data.context.role === 'customer' ? '/' : `/${data.context.role}/dashboard`}>{data.context.role === 'customer' ? 'Customer view' : 'Resume selected role'}</Link>
-    <button onClick={reset}>Reset Demo Data</button>
-    <small>Frontend demo · role and tenant controls are not production security.</small>
-    {message && <span role="status">{message}</span>}
-  </div>;
+  const { data, setData, reset, message } = usePlatform(), navigate = useNavigate(), session = sessionFor(data);
+  return <nav className="demo-controls" aria-label="Demo session">
+    <span>{session ? `${session.displayName} · ${session.role}` : 'Guest'}</span>
+    <Link to="/stores">Browse Stores</Link><Link to="/products">Browse Products</Link>
+    {!session ? <><Link to="/login">Login</Link><Link to="/register">Register</Link></> : <>
+      <Link to={homeFor(session.role)}>{session.role === 'customer' ? 'My Account' : session.role === 'seller' ? 'Seller Dashboard' : 'Admin Dashboard'}</Link>
+      {session.role === 'customer' && <><Link to="/account/orders">My Orders</Link><Link to="/cart">Cart</Link></>}
+      {session.role === 'seller' && <Link to="/seller/stores">My Stores</Link>}
+      {session.role === 'admin' && <><Link to="/admin/tenants">Tenants</Link><Link to="/admin/stores">Stores</Link></>}
+      <button onClick={() => { setData(d => enterSession(d, null)); navigate('/login', { replace: true }); }}>Sign Out</button>
+    </>}
+    <button onClick={reset}>Reset Demo Data</button><small>Frontend demo · no production security</small>{message && <span role="status">{message}</span>}
+  </nav>;
 }

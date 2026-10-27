@@ -1,3 +1,4 @@
+import { sessionFor, enterSession } from '../auth/model.js';
 import { adminSeed } from '../admin/data.js';
 import { validateCart } from '../services/catalog.js';
 import { publicProducts } from './selectors.js';
@@ -13,7 +14,7 @@ export const roles = ['customer', 'seller', 'admin'];
 export function createDemo() {
   const data = adminSeed();
   const customers = Array.from({ length: 5 }, (_, i) => ({ id: `c${i + 1}`, name: data.orders[i].customer, email: `demo${i + 1}@example.com` }));
-  return { ...data, customers, orders: data.orders.map((o, i) => ({ ...o, customerId: customers[i % 5].id })), context: { tenantId: 't1', storeId: 'all', role: 'customer', customerId: 'c1' }, cart: [] };
+  return { ...data, customers, orders: data.orders.map((o, i) => ({ ...o, customerId: customers[i % 5].id })), context: { tenantId: null, storeId: 'all', role: 'guest', customerId: null, signedIn: false }, cart: [], session: null };
 }
 const text = v => typeof v === 'string' && v.trim().length > 0;
 const amount = v => Number.isFinite(v) && v >= 0;
@@ -35,7 +36,7 @@ export function validDemo(d) {
     if (!d.orders.every(o => o.checkoutReference === undefined || (text(o.checkoutReference) && text(o.address) && text(o.email) && text(o.paymentMethod)))) return false;
     if (!d.orders.every(o => store(o) && d.customers.some(c => c.id === o.customerId) && text(o.number) && text(o.customer) && /^\d{4}-\d{2}-\d{2}$/.test(o.date) && statuses.includes(o.status) && currency(o.currency) && ['subtotal','shipping','discount','total'].every(k => amount(o[k])) && Array.isArray(o.items) && o.items.length && o.items.every(i => d.products.some(p => p.id === i.productId && p.storeId === o.storeId) && text(i.name) && amount(i.price) && Number.isSafeInteger(i.quantity) && i.quantity > 0) && Math.abs(o.subtotal - o.items.reduce((n,i) => n + i.price * i.quantity,0)) < 0.001 && Math.abs(o.total - o.subtotal - o.shipping + o.discount) < 0.001)) return false;
     if (!d.events.every(e => store(e) && text(e.type) && text(e.message) && Number.isFinite(Date.parse(e.timestamp)))) return false;
-    return !!(d.context && tenant(d.context.tenantId) && (d.context.storeId === 'all' || d.stores.some(s => s.id === d.context.storeId && s.tenantId === d.context.tenantId)) && roles.includes(d.context.role) && d.customers.some(c => c.id === d.context.customerId) && d.cart.every(i => text(i.id) && Number.isSafeInteger(i.quantity) && i.quantity > 0));
+    return !!(d.context && d.cart.every(i => text(i.id) && Number.isSafeInteger(i.quantity) && i.quantity > 0));
   } catch { return false; }
 }
 export function loadDemo(storage) {
@@ -43,15 +44,16 @@ export function loadDemo(storage) {
     const raw = storage.getItem(STORAGE_KEY);
     if (!raw) {
       const data = createDemo();
-      // Import older frontend preferences once; keep the old keys untouched.
-      const oldStore = storage.getItem('matjari-seller-store');
-      if (data.stores.some(s => s.id === oldStore && s.tenantId === data.context.tenantId)) data.context.storeId = oldStore;
-      try { data.cart = validateCart(JSON.parse(storage.getItem('matjari-cart') || '[]'), publicProducts(data)); } catch { /* Ignore malformed legacy cart only. */ }
+      data.cart = [];
       return { data, writable: true, message: '' };
     }
     const saved = JSON.parse(raw);
     if (saved.version !== VERSION || !validDemo(saved.data)) throw new Error('Invalid demo');
-    return { data: saved.data, writable: true, message: '' };
+    const session = sessionFor(saved.data);
+    const data = enterSession(saved.data, session);
+    if (session) data.cart = validateCart(saved.data.cart, publicProducts(data));
+    if (session?.role === 'seller' && saved.data.stores.some(s => s.id === saved.data.context.storeId && s.tenantId === session.tenantId)) data.context.storeId = saved.data.context.storeId;
+    return { data, writable: true, message: '' };
   } catch {
     return { data: createDemo(), writable: false, message: 'Saved demo data could not be loaded. Using the seed in memory. Reset Demo Data to replace the saved copy.' };
   }

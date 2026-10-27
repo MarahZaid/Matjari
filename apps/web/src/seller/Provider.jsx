@@ -1,3 +1,4 @@
+import { sessionFor } from '../auth/model';
 import { useState } from 'react';
 import { SellerContext } from './context';
 import { usePlatform } from '../platform/context';
@@ -6,17 +7,12 @@ export default function SellerProvider({
   children
 }) {
   const { data, setData } = usePlatform();
-  const { tenantId, storeId: selection } = data.context;
+  const tenantId = sessionFor(data)?.tenantId;
+  const selection = data.context.storeId;
   const [notice, setNotice] = useState('');
   const storeId = validStore(data.stores, tenantId, selection) ? selection : 'all';
   function selectStore(id) {
     if (validStore(data.stores, tenantId, id)) setData(d => ({ ...d, context: { ...d.context, storeId: id } }));
-  }
-  function changeTenant(id) {
-    if (data.tenants.some(t => t.id === id)) {
-      setData(d => ({ ...d, context: { ...d.context, tenantId: id, storeId: 'all' } }));
-      setNotice('Demo tenant changed. Private data is now scoped to this tenant.');
-    }
   }
   const authorizedStores = storesByTenant(data.stores, tenantId);
   const products = scoped(data.products, data.stores, tenantId, storeId),
@@ -89,8 +85,7 @@ export default function SellerProvider({
   }
   return <SellerContext.Provider value={{
     tenant: data.tenants.find(t => t.id === tenantId),
-    tenants: data.tenants,
-    changeTenant,
+    tenants: data.tenants.filter(t => t.id === tenantId),
     storeId,
     selectStore,
     stores: authorizedStores,

@@ -1,5 +1,6 @@
+import { accounts, enterSession, safeDestination } from '../auth/model';
 import { useRef, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { usePlatform } from '../platform/context';
 import { money } from '../services/catalog';
 import { statuses } from '../seller/data';
@@ -7,32 +8,30 @@ import { confirmationOrders, placeCheckout, sessionCustomer, validateContact, vi
 import './customer.css';
 
 function Frame({ title, children }) {
-  return <div className="container page customer-page"><span className="eyebrow">MATJARI · CUSTOMER DEMO</span><h1>{title}</h1><p>Use fictional details. This browser-only demo provides no production authentication, payment or shipping service.</p><nav className="customer-nav" aria-label="Customer"><Link to="/account">My account</Link><Link to="/account/orders">My orders</Link><Link to="/cart">Shopping bag</Link></nav>{children}</div>;
+  return <div className="container page customer-page"><span className="eyebrow">MATJARI · CUSTOMER DEMO</span><h1>{title}</h1><p>Use fictional details. This browser-only demo provides no production authentication, payment or shipping service.</p>{sessionCustomer(usePlatform().data) && <nav className="customer-nav" aria-label="Customer"><Link to="/account">My account</Link><Link to="/account/orders">My orders</Link><Link to="/cart">Shopping bag</Link></nav>}{children}</div>;
 }
 function Fields({ values, setValues, shipping = false }) {
   return <div className="customer-fields">{[['name','Name','text'],['email','Email','email'],['phone','Phone (optional)','tel'],...(shipping ? [['line1','Street address','text'],['city','City','text'],['country','Country','text']] : [])].map(([key,label,type]) => <label key={key}>{label}<input name={key} type={type} required={key !== 'phone'} maxLength={key === 'phone' ? 30 : key === 'name' ? 100 : 160} autoComplete="off" value={values[key] || ''} onChange={e => setValues({ ...values, [key]: e.target.value })} /></label>)}</div>;
 }
-function Guard({ children }) {
-  const { data } = usePlatform(), location = useLocation();
-  return sessionCustomer(data) ? children : <Navigate to={'/login?next=' + encodeURIComponent(location.pathname)} replace />;
-}
 export function Auth({ register = false }) {
   const { data, setData } = usePlatform(), navigate = useNavigate(), location = useLocation();
-  const [selected, select] = useState(data.context.customerId), [values, setValues] = useState({ name: '', email: '', phone: '' }), [password, setPassword] = useState(''), [show, setShow] = useState(false), [error, setError] = useState('');
+  const options = accounts(data);
+  const [selected, select] = useState(options[0]?.userId), [values, setValues] = useState({ name: '', email: '', phone: '' }), [error, setError] = useState('');
   function submit(e) {
     e.preventDefault();
-    if (password.length < 6) return setError('Use any demo password of at least 6 characters. It is never saved or checked against an account.');
     if (register && validateContact(values)) return setError(validateContact(values));
-    if (register && data.customers.some(c => c.email.toLowerCase() === values.email.trim().toLowerCase())) return setError('That demo email already exists. Select its demo account on the sign-in page.');
-    const id = register ? 'customer-' + crypto.randomUUID() : selected;
-    setData(d => ({ ...d, customers: register ? [...d.customers, { id, name: values.name.trim(), email: values.email.trim(), phone: values.phone }] : d.customers, context: { ...d.context, customerId: id, signedIn: true } }));
-    setPassword('');
-    const next = new URLSearchParams(location.search).get('next');
-    navigate(next?.startsWith('/') && !next.startsWith('//') ? next : '/account', { replace: true });
+    if (register && data.customers.some(c => c.email.toLowerCase() === values.email.trim().toLowerCase())) return setError('That demo email already exists. Choose its demo account.');
+    const customer = { id: 'customer-' + crypto.randomUUID(), name: values.name.trim(), email: values.email.trim(), phone: values.phone };
+    const nextData = register ? { ...data, customers: [...data.customers, customer] } : data;
+    const account = accounts(nextData).find(a => a.userId === (register ? customer.id : selected));
+    if (!account) return setError('Choose an available demo account.');
+    setData(enterSession(nextData, account));
+    navigate(safeDestination(new URLSearchParams(location.search).get('next'), account.role), { replace: true });
   }
-  return <Frame title={register ? 'Create a demo account' : 'Demo sign in'}><form className="customer-card auth-card" onSubmit={submit}>{register ? <Fields values={values} setValues={setValues} /> : <label>Choose a fictional demo account<select value={selected} onChange={e => select(e.target.value)}>{data.customers.map(c => <option key={c.id} value={c.id}>{c.name} · {c.email}</option>)}</select></label>}<label>Demo password<input type={show ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} maxLength={100} autoComplete="off" /></label><button type="button" className="plain-button" aria-pressed={show} onClick={() => setShow(!show)}>{show ? 'Hide' : 'Show'} password</button><p>Any six-character demo password works. Passwords are never stored.</p>{error && <p role="alert" className="customer-error">{error}</p>}<button className="button">{register ? 'Create demo account' : 'Sign in to demo'}</button><Link to={(register ? '/login' : '/register') + location.search}>{register ? 'Choose an existing demo account' : 'Register a demo account'}</Link></form></Frame>;
+  return <Frame title={register ? 'Create a demo customer account' : 'Demo Login'}>{(location.state?.required || new URLSearchParams(location.search).has('next')) && <p role="status">Sign in required. Choose an account with access to your destination. For shopping, choose Customer Demo, then confirm Add to Cart on the product page.</p>}<form className="customer-card auth-card" onSubmit={submit}>{register ? <Fields values={values} setValues={setValues} /> : <label>Choose a demo account<select value={selected} onChange={e => select(e.target.value)}>{options.map(a => <option key={a.userId} value={a.userId}>{a.role === 'customer' ? 'Customer Demo — ' : ''}{a.displayName}</option>)}</select></label>}<p>Simulated account selection only. No password or payment is required. Registration creates a local customer profile only.</p>{error && <p role="alert" className="customer-error">{error}</p>}<button className="button">{register ? 'Create demo customer' : 'Sign in to demo'}</button><Link to={(register ? '/login' : '/register') + location.search}>{register ? 'Choose an existing demo account' : 'Register a demo customer'}</Link></form></Frame>;
 }
-export function Account() { return <Guard><Profile /></Guard>; }
+
+export function Account() { return <><Profile /></>; }
 function Profile() {
   const { data, setData } = usePlatform(), customer = sessionCustomer(data), navigate = useNavigate();
   const [values, setValues] = useState(customer), [message, setMessage] = useState('');
@@ -44,9 +43,9 @@ function Profile() {
     setData(d => ({ ...d, customers: d.customers.map(c => c.id === customer.id ? { ...c, name: values.name.trim(), email: values.email.trim(), phone: values.phone || '' } : c) }));
     setMessage('Demo profile saved.');
   }
-  return <Frame title="Your account"><form className="customer-card auth-card" onSubmit={submit}><Fields values={values} setValues={setValues} /><p role="status">{message}</p><button className="button">Save profile</button><button type="button" className="button secondary" onClick={() => { setData(d => ({ ...d, context: { ...d.context, signedIn: false } })); navigate('/login'); }}>Sign out</button></form></Frame>;
+  return <Frame title="Your account"><form className="customer-card auth-card" onSubmit={submit}><Fields values={values} setValues={setValues} /><p role="status">{message}</p><button className="button">Save profile</button><button type="button" className="button secondary" onClick={() => { setData(d => enterSession(d, null)); navigate('/login'); }}>Sign out</button></form></Frame>;
 }
-export function Checkout() { return <Guard><CheckoutForm /></Guard>; }
+export function Checkout() { return <><CheckoutForm /></>; }
 function CheckoutForm() {
   const { data, transact } = usePlatform(), navigate = useNavigate(), customer = sessionCustomer(data);
   const [values, setValues] = useState({ name: customer.name, email: customer.email, phone: customer.phone || '', line1: '', city: '', country: '' }), [error, setError] = useState(''), [review, setReview] = useState(false), [busy, setBusy] = useState(false);
@@ -76,18 +75,18 @@ function OrderCard({ order, detail = false }) {
   const progress = ['pending','paid','fulfilled','shipped','delivered'];
   return <article className="customer-card"><h2>{order.number}</h2><p>{data.stores.find(s => s.id === order.storeId)?.name} · {order.date}</p><p role="status">Status: <strong>{order.status}</strong></p><ul>{order.items.map(i => <li key={i.productId}>{i.name} × {i.quantity} · {money(i.price, order.currency)} each</li>)}</ul><strong>Total: {money(order.total, order.currency)} {order.currency}</strong>{detail ? <><p>Shipping: {money(order.shipping,order.currency)} · Discount: {money(order.discount,order.currency)}</p><h3>Shipping information</h3><p>{order.customer} · {order.email}</p><p>{order.address}</p><p>{order.paymentMethod || 'Historical demo order'}</p><h3>Order progress</h3>{progress.includes(order.status) ? <ol className="order-progress">{progress.map((s,i) => <li key={s} aria-current={s === order.status ? 'step' : undefined} className={i <= progress.indexOf(order.status) ? 'reached' : ''}>{s}{s === order.status ? ' (current)' : ''}</li>)}</ol> : <p>This order is {order.status}.</p>}<p>Demo status only. No shipment tracking number or delivery estimate is available.</p></> : <p><Link to={'/account/orders/' + order.id}>View details</Link></p>}</article>;
 }
-export function Confirmation() { return <Guard><ConfirmationContent /></Guard>; }
+export function Confirmation() { return <><ConfirmationContent /></>; }
 function ConfirmationContent() {
   const { reference } = useParams(), { data } = usePlatform(), orders = confirmationOrders(data,reference);
   return <Frame title={orders.length ? 'Your demo order is confirmed' : 'Confirmation unavailable'}>{orders.length ? <><p role="status">Success! {orders.length} store/currency order(s) created. No payment was collected.</p><div className="customer-order-grid">{orders.map(o => <OrderCard key={o.id} order={o} />)}</div></> : <p>No confirmation belongs to this demo account.</p>}<div className="customer-nav"><Link className="button" to="/account/orders">View orders</Link><Link className="button secondary" to="/products">Continue shopping</Link></div></Frame>;
 }
-export function Orders() { return <Guard><OrderHistory /></Guard>; }
+export function Orders() { return <><OrderHistory /></>; }
 function OrderHistory() {
   const { data } = usePlatform(), [search,setSearch] = useState(''), [status,setStatus] = useState(''), [sort,setSort] = useState('newest'), [page,setPage] = useState(1);
   const rows = visibleOrders(data,data.context.customerId,search,status,sort), pages = Math.max(1,Math.ceil(rows.length/6)), current = Math.min(page,pages);
   return <Frame title="Your demo orders"><div className="customer-filters"><label>Search order number<input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></label><label>Status<select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">All statuses</option>{statuses.map(s => <option key={s}>{s}</option>)}</select></label><label>Date order<select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label></div><div className="customer-order-grid">{rows.slice((current-1)*6,current*6).map(o => <OrderCard key={o.id} order={o} />)}</div>{!rows.length && <p>No orders found. <Link to="/products">Explore products</Link></p>}<nav className="customer-nav" aria-label="Order pagination"><button disabled={current===1} onClick={() => setPage(current-1)}>Previous</button><span>Page {current} of {pages}</span><button disabled={current===pages} onClick={() => setPage(current+1)}>Next</button></nav></Frame>;
 }
-export function OrderDetails() { return <Guard><Details /></Guard>; }
+export function OrderDetails() { return <><Details /></>; }
 function Details() {
   const { id } = useParams(), { data } = usePlatform(), order = visibleOrders(data,data.context.customerId).find(o => o.id === id);
   return <Frame title="Order details">{order ? <OrderCard order={order} detail /> : <p>Order unavailable for this demo account.</p>}<Link to="/account/orders">Back to orders</Link></Frame>;

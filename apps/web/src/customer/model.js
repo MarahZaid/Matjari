@@ -1,5 +1,6 @@
+import { sessionFor } from '../auth/model.js';
 import { publicProducts, customerOrders } from '../platform/selectors.js';
-export const sessionCustomer = d => d.context.signedIn ? d.customers.find(c => c.id === d.context.customerId) : null;
+export const sessionCustomer = d => sessionFor(d)?.role === 'customer' ? d.customers.find(c => c.id === sessionFor(d).customerId) : null;
 export function validateContact(v) {
   if (!v.name?.trim() || v.name.length > 100) return 'Enter a name of up to 100 characters.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email || '') || v.email.length > 160) return 'Enter a valid demo email.';
@@ -7,6 +8,7 @@ export function validateContact(v) {
   return '';
 }
 export function visibleOrders(d, id, search = '', status = '', sort = 'newest') {
+  if (sessionCustomer(d)?.id !== id) return [];
   return customerOrders(d, id).filter(o => o.number.toLowerCase().includes(search.toLowerCase()) && (!status || o.status === status)).sort((a,b) => (sort === 'oldest' ? 1 : -1) * (a.date.localeCompare(b.date) || (a.createdAt || a.id).localeCompare(b.createdAt || b.id)));
 }
 export function confirmationOrders(d, reference) {
