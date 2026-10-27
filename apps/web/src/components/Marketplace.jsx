@@ -1,3 +1,4 @@
+import { usePlatform } from "../platform/context";
 import { useMarketplace } from "../platform/useMarketplace";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -74,6 +75,7 @@ export function SearchBar({
   );
 }
 export function Header() {
+  const { data } = usePlatform();
   const [open, setOpen] = useState(false),
     [search, setSearch] = useState("");
   const navigate = useNavigate(),
@@ -104,13 +106,10 @@ export function Header() {
             }}
           />
         </div>
-        <span
-          className="sign-in"
-          title="Customer accounts are coming in a future phase"
-        >
+        <Link className="sign-in" to={data.context.signedIn ? "/account" : "/login"}>
           <UserRound size={18} />
-          Sign in <small>Coming soon</small>
-        </span>
+          {data.context.signedIn ? "My account" : "Demo sign in"}
+        </Link>
         <Link
           className="cart-link"
           to="/cart"

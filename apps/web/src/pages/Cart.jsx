@@ -99,17 +99,11 @@ export default function Cart() {
               <Info size={19} />
               <p>
                 {Object.keys(totals).length > 1
-                  ? "Your bag contains different currencies. Subtotals are kept separate; mixed-currency checkout needs an explicit policy."
-                  : "This is a marketplace preview. Checkout and payments will be available in a future phase."}
+                  ? "Checkout creates separate orders for each store and currency. No currency conversion."
+                  : "Demo checkout creates a separate order for each store. No real payment is collected."}
               </p>
             </div>
-            <button
-              className="button"
-              disabled
-              aria-describedby="checkout-note"
-            >
-              Checkout coming later
-            </button>
+            <Link className="button" to="/checkout" aria-describedby="checkout-note">Continue to demo checkout</Link>
             <small id="checkout-note">
               No payment will be collected. Your bag is saved on this device
               when browser storage is available.

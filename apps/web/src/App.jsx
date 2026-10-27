@@ -4,7 +4,7 @@ import CartProvider from "./context/CartProvider";
 import { Header, Footer, EmptyState, LoadingSkeleton } from "./components/Marketplace";
 import { useMarketplace } from "./platform/useMarketplace";
 import DemoControls from "./platform/DemoControls";
-import CustomerOrders from "./pages/Orders";
+import { Auth, Account, Checkout, Confirmation, Orders as CustomerOrders, OrderDetails as CustomerOrderDetails } from "./customer/Pages";
 import { getStoreBySlug } from "./services/catalog";
 import "./App.css";
 import PlatformProvider from "./platform/Provider";
@@ -92,7 +92,14 @@ export default function App() {
               <Route path="/stores/:slug" element={<Storefront />} />
               <Route path="/products" element={<Catalog />} />
               <Route path="/products/:id" element={<ProductDetails />} />
-              <Route path="/orders" element={<CustomerOrders />} />
+              <Route path="/orders" element={<Navigate to="/account/orders" replace />} />
+              <Route path="/login" element={<Auth key="login" />} />
+              <Route path="/register" element={<Auth key="register" register />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/account/orders" element={<CustomerOrders />} />
+              <Route path="/account/orders/:id" element={<CustomerOrderDetails />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/checkout/confirmation/:reference" element={<Confirmation />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="*" element={<NotFound />} />
               </Route>
