@@ -1,5 +1,7 @@
 # Phase 4 frontend integration report
 
+> Historical report: This report records Phase 4. Its unguarded role controls, legacy cart import and customer selector were later replaced by validated sessions and role guards. See the [current frontend guides](../../docs/README.md) for implemented behavior and setup.
+
 Verified on October 27, 2026. All repository changes are inside `apps/web`. No API, database, migrations, real authentication, payments, commits, pushes, or merges were performed.
 
 ## Files changed

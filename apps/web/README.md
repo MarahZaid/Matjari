@@ -1,105 +1,96 @@
-# Matjari frontend demo
+# Matjari frontend developer guide
 
-Matjari is a multi-tenant, multi-store eCommerce demonstration for Advanced Database Systems — Fall 2026. The React/Vite frontend includes a marketplace, customer checkout and account, tenant-scoped seller tools, and platform administration. All operations use fictional browser data. No backend, MySQL, credentials, payment provider or shipping service is connected.
+The React/Vite frontend provides a completed browser demo of marketplace, customer, seller and admin workflows. The shared data graph is local; no backend, database, authentication or payment provider is connected. See the [project overview](../../README.md) and [documentation index](../../docs/README.md).
 
-## Start and preview
+## Directory structure
 
-From the repository root:
+```text
+apps/web/
+├── public/             # Favicon and icon sprite
+├── src/
+│   ├── admin/          # Platform layout, pages and model helpers
+│   ├── auth/           # Session model and route guards
+│   ├── components/     # Shared marketplace UI
+│   ├── context/        # Cart context and provider
+│   ├── customer/       # Demo auth, profile, checkout and orders
+│   ├── data/           # Base marketplace seed
+│   ├── pages/          # Public marketplace and cart pages
+│   ├── platform/       # Shared state, persistence and selectors
+│   ├── seller/         # Tenant-scoped workspace and mutations
+│   ├── services/       # Catalog/cart helpers
+│   ├── theme/          # Theme preference and toggle
+│   ├── App.jsx         # Router and provider composition
+│   └── index.css       # Shared tokens and theme rules
+├── tests/              # Node assertions and optional Chrome suites
+├── index.html          # Entry document and early theme initialization
+├── vite.config.js      # Vite React plugin
+└── vercel.json         # SPA deep-link rewrite
+```
 
-```sh
+## Install and run
+
+Use the [root prerequisites](../../README.md#prerequisites). Commands here run from the repository root:
+
+```bash
 npm ci --prefix apps/web
+npm run dev --prefix apps/web
+```
+
+Vite normally serves `http://localhost:5173` and selects another port if occupied. Open the printed URL. To bind a specific local interface/port:
+
+```bash
 npm run dev --prefix apps/web -- --host 127.0.0.1 --port 5180
 ```
 
-Open the URL Vite prints (normally http://127.0.0.1:5180; another port is selected if occupied). For a production preview:
+`npm install --prefix apps/web` is available when intentionally updating dependencies. The lockfile install is preferred for a repeatable checkout. There is no required `.env` file or API process.
 
-```sh
+## Build, lint and tests
+
+```bash
 npm run build --prefix apps/web
 npm run preview --prefix apps/web -- --host 127.0.0.1
+npm run lint --prefix apps/web
+npm test --prefix apps/web
 ```
 
-Storage is per origin; different ports have separate demo data.
+Build writes `apps/web/dist`; preview normally uses port 4173. The Node test command runs six test files. Browser scripts `test:browser` and `test:polish` require a running frontend and externally supplied Playwright/Chrome. See [testing](../../docs/frontend/TESTING.md) for exact commands, environment variables, results and limitations.
 
-## Vercel deployment
+## Demo login and state reset
 
-Import the repository into Vercel with these project settings:
+At `/login`, select a customer, a seller for a specific tenant, or Platform Admin Demo. No password is requested. `/register` adds a local customer using fictional contact details. Guests browse publicly, but cart/account/checkout require a customer. Seller/admin branches require their exact role; wrong-role sessions see 403 UI. A guest Add to Cart redirects without changing the bag; after customer login, add explicitly again.
+
+Sign Out clears the session, cart and selected context while preserving orders and edits. Change seller tenants by signing out and choosing another seller. Customer order URLs/references resolve only owned orders. See [demo authentication and RBAC](../../docs/frontend/DEMO_AUTH_RBAC.md).
+
+The `matjari-demo-v1` localStorage entry holds the versioned graph and session. **Reset Demo Data** asks for confirmation. Cancel preserves data; confirm restores the seed, removes created profiles/orders/edits and signs out. `matjari-theme` is independent and retained. Invalid saved data is preserved while a seed runs in memory; confirmed reset replaces it. Storage failures allow in-memory use with a notice. Use one active tab on one origin.
+
+## Vercel settings
 
 | Setting | Value |
 | --- | --- |
+| Framework | Vite |
 | Root Directory | `apps/web` |
-| Framework Preset | Vite |
 | Install Command | `npm ci` |
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
-No environment variables, API server, database, or credentials are required for this demo. Commands above run relative to the Vercel Root Directory. Deploy the generated `dist` output rather than running the Vite development or preview server.
+[vercel.json](vercel.json) provides the SPA rewrite. Test direct visits and refreshes with each role after deployment. See the [deployment guide](../../docs/frontend/DEPLOYMENT.md) for asset checks and limitations. No live URL was verified in this documentation task.
 
-[`vercel.json`](vercel.json) follows [Vercel's Vite SPA guidance](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas): requests without a matching static file fall back to `/index.html`, allowing React Router to handle direct visits and refreshes at `/cart`, `/login`, `/seller/dashboard`, `/admin/dashboard`, and other routes. Protected routes still require the correct demo role; guests are redirected to login and other roles receive the existing access-denied page.
+## Troubleshooting
 
-Vite retains its default `/` asset base. Built JavaScript/CSS use root-relative `/assets/` URLs, and `public/favicon.svg` and `public/icons.svg` are copied to the output root. Existing files are served before the SPA fallback. Product photos and Inter fonts use external HTTPS providers, with the existing image and system-font fallbacks. There is no localhost API dependency or backend proxy.
+- **npm cannot find scripts:** run from the repository root with `--prefix apps/web`, or enter `apps/web` and omit the prefix.
+- **Unsupported Node version:** match the locked tool requirements listed in the root prerequisites, then reinstall with `npm ci`.
+- **Different demo records:** ports/domains are different origins and have separate storage.
+- **Login redirect/403:** select the required role; admin does not inherit seller/customer tools.
+- **Unexpected cart changes:** sign-out/new login clears the bag; availability and stock changes also revalidate it.
+- **Saved-data notice:** reset only when replacing local edits is acceptable; blocked storage retains changes only in memory.
+- **Browser tests cannot import Playwright:** supply an installed module path and Chrome as described in the testing guide.
+- **Missing photos/fonts:** external HTTPS providers may be unavailable; check image and system-font fallbacks.
 
-After deployment, directly open and refresh the four routes above, sign in with each relevant demo role, and check that JavaScript, CSS, favicon and icon requests return their proper asset content. Confirm cart/session persistence and theme persistence on reload. Storage belongs to the deployed origin: local development, preview URLs, and the production domain have separate demo state. Mock data, demo authentication, role guards and Light/Dark Theme are unchanged; the hosted app remains a browser demo with inspectable local data.
+## Technical guides and reports
 
-## Routes
+[Architecture](../../docs/frontend/ARCHITECTURE.md) · [Routes](../../docs/frontend/PAGES_AND_ROUTES.md) · [User flows](../../docs/frontend/USER_FLOWS.md) · [RBAC](../../docs/frontend/DEMO_AUTH_RBAC.md) · [Multi-tenant model](../../docs/frontend/MULTI_TENANT.md) · [Design system](../../docs/frontend/DESIGN_SYSTEM.md) · [Deployment](../../docs/frontend/DEPLOYMENT.md) · [Testing](../../docs/frontend/TESTING.md)
 
-| Area | Routes |
-| --- | --- |
-| Public marketplace | `/`, `/stores`, `/stores/:slug`, `/products`, `/products/:id` |
-| Demo account selection | `/login`, `/register` |
-| Customer | `/account`, `/account/orders`, `/account/orders/:id`, `/cart`, `/checkout`, `/checkout/confirmation/:reference` |
-| Seller | `/seller/dashboard`, `/seller/stores`, `/seller/products`, `/seller/inventory`, `/seller/orders`, `/seller/orders/:id` |
-| Admin | `/admin/dashboard`, `/admin/tenants`, `/admin/stores`, `/admin/analytics`, `/admin/monitoring` |
+Preserved reports: [Phase 4](PHASE4.md), [Phase 5](PHASE5.md), [RBAC implementation](DEMO_RBAC.md), [Phase 6](PHASE6.md). They record earlier states and test executions; the current guides describe the implemented session-based policies.
 
-`/orders` redirects to customer order history; `/seller` and `/admin` redirect to their dashboards. Unknown paths show a not-found state.
-
-## Demo login and route protection
-
-Choose a fictional customer, a seller associated with a specific tenant, or Platform Admin Demo at `/login`. No password is requested. Registration creates a local customer profile using fictional contact details. Sign Out ends the session and clears the cart and selected customer/tenant/store context; orders remain attached to their customer.
-
-Guests can browse, but cart/account/checkout and workspaces require the appropriate role. Guest Add to Cart returns to the product after customer login; press Add to Cart again to confirm the action. No cart mutation occurs before login. Sellers and admins cannot use customer checkout. Each role receives a 403 for another role's protected pages. Intended destinations are restored only when safe and permitted for the chosen role. Valid sessions survive reload; invalid sessions become guests.
-
-Seller store selection and records remain scoped to the signed-in tenant. Switching tenants requires signing out and selecting another seller account. Customer history, order URLs and confirmation references expose only the active customer's orders. See [DEMO_RBAC.md](DEMO_RBAC.md) for the access matrix and implementation details. These frontend policies demonstrate isolation; bundled data/localStorage are inspectable and are not production authorization.
-
-## Shared mock data and checkout
-
-One PlatformProvider graph connects tenants, stores, products, inventory, customers, orders and sample monitoring events. Seller edits and admin status changes propagate to the marketplace. Suspending a store hides it and its products publicly; suspending a tenant hides every associated storefront. Historical customer orders remain visible. Monitoring uses deterministic mock events, with no live health information.
-
-Checkout validates contact/shipping fields, availability and stock before atomically creating store/currency orders and deducting inventory. Historical item prices are snapshots. Orders split by store and currency; USD, EUR and ILS are never combined or converted. Demo cash on delivery collects no payment; new checkout orders use zero shipping/discount assumptions. Seller status changes appear in the customer's order timeline. Status stages are current-state indicators, not timestamped shipment events.
-
-The versioned `matjari-demo-v1` localStorage record persists the shared graph, session and cart. Corrupt/unsupported data is preserved with a recovery notice; storage failures leave the demo usable in memory. The app is intended for one active browser tab.
-
-**Reset Demo Data** is available in the shared demo toolbar and asks for confirmation. Cancel preserves data. Confirm restores the seed, removes created profiles/orders/edits, ends the session and clears the cart. Theme preference is retained.
-
-## Light and dark themes
-
-First-time visitors start in light mode. The shared **Dark theme / Light theme** button appears on public, authentication, customer, seller and admin pages. Its accessible name is “Dark theme” and `aria-pressed` reports whether dark mode is enabled. The preference uses the independent `matjari-theme` key and is applied in the document head before React renders. Dark mode uses navy/charcoal surfaces and blue accents. Forms, tables, dialogs, charts, status badges, toasts and loading states share theme variables. If storage is blocked, changing the theme still works for the visit and shows a notice.
-
-## Verification
-
-```sh
-npm run lint --prefix apps/web
-npm test --prefix apps/web
-npm run build --prefix apps/web
-```
-
-Node tests cover catalog rules, seller scope, admin selectors, checkout transactions, customer ownership, role guards, persistence/reset and theme preferences.
-
-Real-browser suites require a running frontend, Playwright and Chrome supplied by your environment. No browser testing dependency is added to the app. For example:
-
-```sh
-WEB_URL=http://127.0.0.1:5180 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:browser --prefix apps/web
-WEB_URL=http://127.0.0.1:5180 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:polish --prefix apps/web
-```
-
-`CHROME_PATH` overrides `/usr/bin/google-chrome`. `SCREENSHOT_DIR` optionally saves screenshots to an existing directory. `TRACE_QA=1` logs navigation in the polish suite. The RBAC suite checks login, logout/back, safe redirects, customer/seller isolation, invalid sessions and registration. The polish suite traverses guest shopping through checkout, seller updates, customer verification and admin suspension/restoration, then checks 24 routes at seven widths under both themes, dialogs, tablet orientation and theme/reset/storage failure behavior. External fonts and product photography are blocked in that suite for deterministic fallback testing. See [PHASE6.md](PHASE6.md) for executed results and limitations. Earlier phase reports describe historical implementation states; this README and DEMO_RBAC describe the current behavior.
-
-## Limitations and future integration
-
-This is a browser demo, not a production service. It has no cross-tab/device concurrency control, real authentication, payments, shipping, live monitoring, exchange rates or server-side authorization. Imagery/fonts depend on external providers; image fallbacks and system fonts remain available offline. Browser QA uses headless Chrome; physical devices, Firefox/Safari and full assistive-technology certification are outside the executed checks.
-
-A future backend must derive identity/tenant ownership from verified server sessions and authorize every read/mutation, replace local selectors with paginated API queries, provide transactional inventory/order writes and idempotency, and integrate payment/shipping providers. No backend endpoints or database migrations are part of this frontend.
-
-Designed & Developed by
-Alaa Dere · Hiba Burhan · Marah Zaid · Shorouq Derieh
-
-Matjari | Advanced Database Systems Project — Fall 2026
+Designed & Developed by Alaa Dere · Hiba Burhan · Marah Zaid · Shorouq Derieh
+Advanced Database Systems — Fall 2026

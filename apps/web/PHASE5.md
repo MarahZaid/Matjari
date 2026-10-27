@@ -1,5 +1,7 @@
 # Phase 5 customer shopping experience
 
+> Historical report: This report records Phase 5. Its demo password field and role controls were later replaced by password-free account selection and role guards. See the [current frontend guides](../../docs/README.md) for implemented behavior and setup.
+
 Implemented October 27, 2026. Changes are confined to apps/web.
 
 ## Pages and components
