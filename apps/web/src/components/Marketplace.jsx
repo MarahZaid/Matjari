@@ -144,6 +144,7 @@ export function Footer() {
         </div>
         <div>
           <h3>Explore Matjari</h3>
+          <Link to="/seller/dashboard">Merchant dashboard · Demo</Link>
           <Link to="/products">All products</Link>
           <Link to="/stores">Our stores</Link>
           <Link to="/products?category=Home+%26+Living">Home & Living</Link>
