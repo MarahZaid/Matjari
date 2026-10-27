@@ -2,6 +2,8 @@
 
 These guides describe the current frontend demo, checked against the repository on October 27, 2026.
 
+**[Live Demo](https://matjari-three.vercel.app/)** — frontend demo using mock data and browser localStorage. See the [deployment guide](frontend/DEPLOYMENT.md) for Vercel configuration and automatic redeployment.
+
 ## Frontend guides
 
 | Guide | Contents |

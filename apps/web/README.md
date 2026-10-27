@@ -2,6 +2,10 @@
 
 The React/Vite frontend provides a completed browser demo of marketplace, customer, seller and admin workflows. The shared data graph is local; no backend, database, authentication or payment provider is connected. See the [project overview](../../README.md) and [documentation index](../../docs/README.md).
 
+## Live Website
+
+Visit **[Matjari on Vercel](https://matjari-three.vercel.app/)**. The deployed website is a frontend demo using mock data and browser localStorage, with no connected backend or database.
+
 ## Directory structure
 
 ```text
@@ -73,7 +77,7 @@ The `matjari-demo-v1` localStorage entry holds the versioned graph and session. 
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
-[vercel.json](vercel.json) provides the SPA rewrite. Test direct visits and refreshes with each role after deployment. See the [deployment guide](../../docs/frontend/DEPLOYMENT.md) for asset checks and limitations. No live URL was verified in this documentation task.
+[vercel.json](vercel.json) provides the SPA rewrite. Test direct visits and refreshes with each role after deployment. See the [deployment guide](../../docs/frontend/DEPLOYMENT.md) for asset checks and limitations.
 
 ## Troubleshooting
 

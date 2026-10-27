@@ -2,7 +2,13 @@
 
 [Documentation index](../README.md)
 
-The frontend builds as static Vite assets. No deployed Matjari URL or Vercel account settings were verified during this documentation task. These settings follow the repository configuration and [Vercel's Vite SPA guidance](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
+## Live production URL
+
+**[https://matjari-three.vercel.app/](https://matjari-three.vercel.app/)**
+
+The deployed website is a frontend demo using mock data and browser localStorage. No backend or database is connected.
+
+The frontend builds as static Vite assets. These settings follow the repository configuration and [Vercel's Vite SPA guidance](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
 
 ## Project setup
 
@@ -19,6 +25,10 @@ The frontend builds as static Vite assets. No deployed Matjari URL or Vercel acc
 | Output Directory | `dist` |
 
 Commands are relative to `apps/web` in Vercel. Use a Node version compatible with the [prerequisites](../../README.md#prerequisites). No environment variables, database, API process or credentials are required. The API skeleton is not part of this frontend deployment.
+
+## Automatic redeployment
+
+With the Vercel GitHub integration connected, pushes or merged changes to the configured production branch can trigger an automatic production redeployment. Vercel builds the new revision using the settings above and updates the live production URL after a successful deployment. Check the project’s Git settings in Vercel for the configured production branch.
 
 ## SPA routing and assets
 

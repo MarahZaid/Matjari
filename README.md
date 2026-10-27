@@ -1,5 +1,7 @@
 # Matjari — Multi-Tenant eCommerce Platform
 
+**[Live Demo](https://matjari-three.vercel.app/)**
+
 Matjari is a multi-tenant, multi-store eCommerce project for **Advanced Database Systems — Fall 2026**. It demonstrates how a shared platform can serve independent businesses. Each business is a **tenant** and can own several **stores**. Stores contain products, inventory and orders.
 
 The completed frontend demo supports three roles: **Customers** shop and view their own orders; **Sellers** manage the stores of one tenant; **Platform Admins** manage tenants and stores across the platform. Guests can browse without signing in.
@@ -87,7 +89,9 @@ Customer login is required for cart, account and checkout. A guest's Add to Cart
 
 ## Deployment
 
-The frontend supports Vercel deployment with `apps/web` as the Root Directory, Vite as the framework, `npm run build` as the Build Command and `dist` as the Output Directory. The repository includes a SPA rewrite for deep links. See the [deployment guide](docs/frontend/DEPLOYMENT.md). No live deployment URL has been verified for this documentation task.
+Live production URL: **[https://matjari-three.vercel.app/](https://matjari-three.vercel.app/)**. The deployed website is a frontend demo using mock data and browser localStorage; it is not connected to a backend or database.
+
+The frontend supports Vercel deployment with `apps/web` as the Root Directory, Vite as the framework, `npm run build` as the Build Command and `dist` as the Output Directory. The repository includes a SPA rewrite for deep links. See the [deployment guide](docs/frontend/DEPLOYMENT.md).
 
 ## Project status
 
