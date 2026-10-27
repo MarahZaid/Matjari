@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { SellerContext } from './context';
-import { seed, tenants, storesByTenant, validStore, scoped, validateProduct, transitions } from './data';
+import { usePlatform } from '../platform/context';
+import { tenants, storesByTenant, validStore, scoped, validateProduct, transitions } from './data';
 export default function SellerProvider({
   children
 }) {
-  const [data, setData] = useState(seed),
-    [tenantId, setTenantId] = useState('t1'),
+  const { data, setData } = usePlatform();
+  const [tenantId, setTenantId] = useState('t1'),
     [selection, setSelection] = useState(() => {
       try {
         return localStorage.getItem('matjari-seller-store') || 'all';
@@ -87,6 +88,7 @@ export default function SellerProvider({
         ...s,
         id: crypto.randomUUID(),
         tenantId,
+        created: new Date().toISOString().slice(0, 10),
         status: 'active'
       }]
     }));
@@ -94,8 +96,8 @@ export default function SellerProvider({
     return '';
   }
   return <SellerContext.Provider value={{
-    tenant: tenants.find(t => t.id === tenantId),
-    tenants,
+    tenant: data.tenants.find(t => t.id === tenantId),
+    tenants: data.tenants,
     changeTenant,
     storeId,
     selectStore,

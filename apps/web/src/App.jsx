@@ -4,6 +4,9 @@ import CartProvider from "./context/CartProvider";
 import { Header, Footer, EmptyState, LoadingSkeleton } from "./components/Marketplace";
 import { getStoreBySlug } from "./services/catalog";
 import "./App.css";
+import PlatformProvider from "./platform/Provider";
+const AdminLayout = lazy(() => import("./admin/Layout"));
+const AdminPage = lazy(() => import("./admin/Pages"));
 import SellerProvider from "./seller/Provider";
 import SellerLayout from "./seller/UI";
 const Dashboard = lazy(() => import("./seller/Dashboard"));
@@ -51,7 +54,7 @@ function ScrollToTop() {
   } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = pathname.startsWith("/seller") ? "Merchant Workspace | Matjari" : pathname === "/" ? "Matjari — Many Stores. One Marketplace." : `${pathname.startsWith("/cart") ? "Your Bag" : pathname.startsWith("/stores") ? "Independent Stores" : "Discover Products"} | Matjari`;
+    document.title = pathname.startsWith("/admin") ? "Platform Admin · Demo | Matjari" : pathname.startsWith("/seller") ? "Merchant Workspace | Matjari" : pathname === "/" ? "Matjari — Many Stores. One Marketplace." : `${pathname.startsWith("/cart") ? "Your Bag" : pathname.startsWith("/stores") ? "Independent Stores" : "Discover Products"} | Matjari`;
   }, [pathname]);
   return null;
 }
@@ -60,7 +63,7 @@ function CustomerLayout() {
 }
 export default function App() {
   return <BrowserRouter>
-      <CartProvider>
+      <PlatformProvider><CartProvider>
         <ScrollToTop />
         <a className="skip-link" href="#main">
           Skip to content
@@ -68,6 +71,7 @@ export default function App() {
 
           <Suspense fallback={<LoadingSkeleton />}>
             <Routes>
+              <Route path="/admin" element={<AdminLayout />}><Route index element={<Navigate to="dashboard" replace />} />{["dashboard", "tenants", "stores", "analytics", "monitoring"].map(page => <Route key={page} path={page} element={<AdminPage key={page} page={page} />} />)}<Route path="*" element={<NotFound />} /></Route>
               <Route path="/seller" element={<SellerProvider><SellerLayout /></SellerProvider>}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
@@ -90,6 +94,6 @@ export default function App() {
             </Routes>
           </Suspense>
 
-      </CartProvider>
+      </CartProvider></PlatformProvider>
     </BrowserRouter>;
 }
