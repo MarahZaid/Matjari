@@ -1,3 +1,4 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -12,7 +13,7 @@ import {
   PackageOpen,
   UserRound,
 } from "lucide-react";
-import { photo, stores } from "../data/marketplace";
+import { photo } from "../data/marketplace";
 import { money } from "../services/catalog";
 import { useCart } from "../context/CartContext";
 export function Brand() {
@@ -214,6 +215,7 @@ export function StockBadge({ product }) {
   );
 }
 export function ProductCard({ product: p }) {
+  const { stores } = useMarketplace();
   const store = stores.find((s) => s.id === p.storeId),
     { add, quantity } = useCart();
   return (

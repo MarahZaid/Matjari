@@ -1,3 +1,4 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -13,7 +14,7 @@ import {
   Shapes,
   Compass,
 } from "lucide-react";
-import { categories, stores, products } from "../data/marketplace";
+import { categories } from "../data/marketplace";
 import {
   Image,
   ProductGrid,
@@ -31,6 +32,7 @@ const icons = [
   Watch,
 ];
 export default function Home() {
+  const { stores, products } = useMarketplace();
   return (
     <>
       <section className="hero container">
@@ -70,7 +72,7 @@ export default function Home() {
           <span className="orbit orbit-one" />
           <span className="orbit orbit-two" />
           <div className="hero-product hero-headphones">
-            <Image eager id={products[0].image} alt="Studio headphones" />
+            <Image eager id={products[0]?.image || "photo-1546435770-a3e426bf472b"} alt={products[0]?.name || "Studio headphones"} />
             <span>Everyday, upgraded.</span>
           </div>
           <div className="hero-product hero-chair">
@@ -83,8 +85,8 @@ export default function Home() {
           <div className="hero-product hero-bag">
             <Image
               eager
-              id={products[1].image}
-              alt="Canvas bag for everyday adventures"
+              id={products[1]?.image || "photo-1590874103328-eac38a683ce7"}
+              alt={products[1]?.name || "Canvas bag for everyday adventures"}
             />
           </div>
           <div className="floating-note">

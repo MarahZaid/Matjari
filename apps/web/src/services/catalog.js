@@ -1,13 +1,13 @@
-import { products, stores } from "../data/marketplace";
+import { products, stores } from "../data/marketplace.js";
 export const money = (value, currency) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
-export const getStoreBySlug = (slug) => stores.find((s) => s.slug === slug);
-export const getProductsByStore = (id) =>
-  products.filter((p) => p.storeId === id);
-export const getProductsByCategory = (category) =>
-  products.filter((p) => p.category === category);
-export const getRelatedProducts = (product) =>
-  getProductsByStore(product.storeId)
+export const getStoreBySlug = (slug, rows = stores) => rows.find((s) => s.slug === slug);
+export const getProductsByStore = (id, rows = products) =>
+  rows.filter((p) => p.storeId === id);
+export const getProductsByCategory = (category, rows = products) =>
+  rows.filter((p) => p.category === category);
+export const getRelatedProducts = (product, rows = products) =>
+  getProductsByStore(product.storeId, rows)
     .filter((p) => p.id !== product.id && p.active)
     .slice(0, 4);
 export function filterProducts({
@@ -21,8 +21,8 @@ export function filterProducts({
   sort = "featured",
   page = 1,
   pageSize = 8,
-} = {}) {
-  const result = products.filter(
+} = {}, rows = products) {
+  const result = rows.filter(
     (p) =>
       p.active &&
       (!search || p.name.toLowerCase().includes(search.toLowerCase())) &&
@@ -33,6 +33,8 @@ export function filterProducts({
       (max === "" || p.price <= Number(max)) &&
       (!available || p.stock > 0),
   );
+  pageSize = Number.isSafeInteger(pageSize) && pageSize > 0 ? pageSize : 8;
+  page = Math.min(Math.max(1, Number.isSafeInteger(page) ? page : 1), Math.max(1, Math.ceil(result.length / pageSize)));
   if (sort === "name") result.sort((a, b) => a.name.localeCompare(b.name));
   if (sort.startsWith("price"))
     result.sort(
@@ -41,16 +43,17 @@ export function filterProducts({
         (sort === "price-desc" ? b.price - a.price : a.price - b.price),
     );
   return {
+    page,
     items: result.slice((page - 1) * pageSize, page * pageSize),
     total: result.length,
     pages: Math.ceil(result.length / pageSize),
   };
 }
-export function validateCart(raw) {
+export function validateCart(raw, rows = products) {
   if (!Array.isArray(raw)) return [];
   const seen = new Set();
   return raw.flatMap((item) => {
-    const p = products.find((p) => p.id === item?.id);
+    const p = rows.find((p) => p.id === item?.id);
     if (
       !p?.active ||
       !p.stock ||
@@ -63,9 +66,9 @@ export function validateCart(raw) {
     return [{ id: p.id, quantity: Math.min(item.quantity, p.stock) }];
   });
 }
-export function cartTotals(items) {
+export function cartTotals(items, rows = products) {
   return items.reduce((totals, item) => {
-    const p = products.find((p) => p.id === item.id);
+    const p = rows.find((p) => p.id === item.id);
     if (p)
       totals[p.currency] = (totals[p.currency] || 0) + p.price * item.quantity;
     return totals;

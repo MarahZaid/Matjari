@@ -1,12 +1,13 @@
+import { useMarketplace } from "../platform/useMarketplace";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Trash2, Info, ShoppingBag } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import { products, stores } from "../data/marketplace";
 import { cartTotals, money } from "../services/catalog";
 import { Image, Quantity, EmptyState } from "../components/Marketplace";
 export default function Cart() {
+  const { stores, products } = useMarketplace();
   const { items, update } = useCart(),
-    totals = cartTotals(items),
+    totals = cartTotals(items, products),
     count = items.reduce((n, i) => n + i.quantity, 0);
   return (
     <div className="container page">

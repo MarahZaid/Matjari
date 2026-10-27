@@ -1,32 +1,20 @@
 import { useState } from 'react';
 import { SellerContext } from './context';
 import { usePlatform } from '../platform/context';
-import { tenants, storesByTenant, validStore, scoped, validateProduct, transitions } from './data';
+import { storesByTenant, validStore, scoped, validateProduct, transitions } from './data';
 export default function SellerProvider({
   children
 }) {
   const { data, setData } = usePlatform();
-  const [tenantId, setTenantId] = useState('t1'),
-    [selection, setSelection] = useState(() => {
-      try {
-        return localStorage.getItem('matjari-seller-store') || 'all';
-      } catch {
-        return 'all';
-      }
-    }),
-    [notice, setNotice] = useState('');
+  const { tenantId, storeId: selection } = data.context;
+  const [notice, setNotice] = useState('');
   const storeId = validStore(data.stores, tenantId, selection) ? selection : 'all';
   function selectStore(id) {
-    if (!validStore(data.stores, tenantId, id)) return;
-    setSelection(id);
-    try {
-      localStorage.setItem('matjari-seller-store', id);
-    } catch {/* Storage is optional. */}
+    if (validStore(data.stores, tenantId, id)) setData(d => ({ ...d, context: { ...d.context, storeId: id } }));
   }
   function changeTenant(id) {
-    if (tenants.some(t => t.id === id)) {
-      setTenantId(id);
-      selectStore('all');
+    if (data.tenants.some(t => t.id === id)) {
+      setData(d => ({ ...d, context: { ...d.context, tenantId: id, storeId: 'all' } }));
       setNotice('Demo tenant changed. Private data is now scoped to this tenant.');
     }
   }
@@ -44,6 +32,7 @@ export default function SellerProvider({
       image: p.image || 'photo-1498049794561-7780e7231661',
       tenantId,
       name: p.name.trim(),
+      description: p.description || `${p.name.trim()} · selected for your everyday.`,
       sku: p.sku.trim(),
       price: Number(p.price),
       stock: Number(p.stock)
@@ -86,6 +75,9 @@ export default function SellerProvider({
       ...d,
       stores: [...d.stores, {
         ...s,
+        image: 'photo-1441986300917-64674bd600d8',
+        color: '#eaf2ff',
+        initials: s.name.trim().slice(0, 2),
         id: crypto.randomUUID(),
         tenantId,
         created: new Date().toISOString().slice(0, 10),
